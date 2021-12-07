@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include <Vector.h>
 #include "LiquidCrystal.h"
+#include "Options.h"
 
 class Menu {
 private:

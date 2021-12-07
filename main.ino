@@ -19,7 +19,7 @@ const int D7 = 2;
 const int brightnessPin = 11;
 
 int contrast = 80;
-int brightness = 750;
+int brightness = 200;
 
 const byte matrixSize = 8;
 
@@ -63,7 +63,6 @@ void setup() {
 
 
 void loop() {
-    Serial.println("looping");
    hello->drawMenu();
 //   Serial.println(hello->getOptions());
 }

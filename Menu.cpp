@@ -24,7 +24,6 @@ Menu::Menu(Vector<char*>* options, Vector<Menu*>* menus, LiquidCrystal* lcd, boo
 
 
 void Menu::drawMenu() {
-    Serial.println("im gere");  
     if(this->currentLine >= 2) {
         Serial.println("bruhino");
         return; // everything was already drawn
@@ -50,7 +49,7 @@ void Menu::drawMenu() {
         this->lcd->setCursor(this->currentPos, this->currentLine);
         char printChar = this->options_raw_text[currentPosition];
         Serial.println("point one");
-        this->lcd->print("a");
+        this->lcd->print(printChar);
         Serial.println("point two");
         this->currentPos += 1;
         if(this->currentPos >= 16) {
