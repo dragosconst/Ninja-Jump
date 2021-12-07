@@ -1,6 +1,6 @@
 #ifndef OPTION_H
 #define OPTION_H
-#define MAX_OPTION_TEXT = 16
+#define MAX_OPTION_TEXT = 17
 
 #include "Arduino.h"
 #include <Vector.h>
@@ -15,16 +15,19 @@
 // 5. greeting - might be necessary for game over and welcome screens
 enum OptionType { menuTransition, sysValue, gameValue, valueDisplay, greeting};
 
+class Menu;
 
 // Abstract class that serves as the building block for the option types. I've opted for this approach because having one big Option class with
 // all relevant members for each type seemed like a huge waste of memory.
+// !!!! For an option that's supposed to be the last option on a LCD line, make sure to add \n at the end.
 class Option {
 protected:
     OptionType type;
     char text[MAX_OPT_TEXT];
     bool inFocus = false;
 public:
-    Option(OptionType type, char* text);
+    Option() {}
+    Option(OptionType type, const char* text);
     ~Option() { }
 
     virtual void focus(Menu* currentMenu) = 0; // focused will execute the action expected when selecting the option
@@ -37,7 +40,8 @@ class MenuOption : public Option {
 private:
     Menu* nextMenu;
 public:
-    MenuOption(char* text, Menu* nextMenu);
+    MenuOption() {}
+    MenuOption(const char* text, Menu* nextMenu);
     ~MenuOption() { }
 
     void focus(Menu* currentMenu) { currentMenu = nextMenu; this->unfocus(); }
@@ -54,7 +58,8 @@ private:
     int stepValue;
     int currentStep;
 public:
-    SystemOption(char* text, int pin, int baseValue, int stepValue);
+    SystemOption() {}
+    SystemOption(const char* text, int pin, int baseValue, int stepValue);
     ~SystemOption() {}
 
     void focus(Menu* currentMenu) { this->inFocus = true;}
@@ -71,7 +76,8 @@ private:
     int stepValue;
     int possibleSteps;
 public:
-    GameOption(char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps);
+    GameOption() {}
+    GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps);
     ~GameOption() {}
 
     void focus(Menu* currentMenu) { this->inFocus = true;}
@@ -84,7 +90,8 @@ class DisplayOption : public Option {
 private:
     int* value; // using a pointer to the value so we don't have to bother with getters and setters
 public:
-    DisplayOption(char* text, int* value);
+    DisplayOption() {}
+    DisplayOption(const char* text, int* value);
     ~DisplayOption() {}
 
     void focus(Menu* currentMenu) {} // these won't ever fire, this class just displays a value
@@ -95,7 +102,8 @@ public:
 
 class GreetingOption : public Option {
 public:
-    GreetingOption(char* text);
+    GreetingOption() {}
+    GreetingOption(const char* text);
     ~GreetingOption() {}
 
     void focus(Menu* currentMenu) {}

@@ -33,8 +33,22 @@ byte matrixBrightness = 2;
 
 LiquidCrystal lcd(RSPin, EPin, D4, D5, D6, D7);
 
-// Menu greetingsMenu, mainMenu, optionsMenu, aboutMenu, highScoreMenu;
-Menu* hello;
+Menu greetingsMenu, mainMenu, optionsMenu, aboutMenu, highScoreMenu;
+GreetingOption welcomeMessage;
+Option* grOptsArr[1];
+Vector<Option*> grOpts(grOptsArr);
+Menu* currentMenu;
+
+void createMenus() {
+  const char* _welcomeText = "   Welcome! \n\0";
+  GreetingOption _welcomeMessage(_welcomeText);
+  welcomeMessage = _welcomeMessage;
+  grOpts.push_back(&welcomeMessage);
+  Menu menu(grOpts, &lcd, true);
+  greetingsMenu = menu;
+
+  currentMenu = &greetingsMenu;
+}
 
 void setup() {
   Serial.begin(9600);
@@ -48,21 +62,11 @@ void setup() {
   analogWrite(contrastPin, contrast);
   analogWrite(brightnessPin, brightness);
 
-  char* emptyVector[10];
-  Vector<char*> greeting(emptyVector);
-  
-
-  char stuff[] = "stuff\0";
-  lcd.begin(16, 2);
-  greeting.push_back(stuff);
-  Menu greetingsMenu(&greeting, nullptr, &lcd, true);
-  Serial.println(greeting[0]);
-  lcd.print(greeting[0]);
-  hello = &greetingsMenu;
+  createMenus();
 }
 
 
 void loop() {
-   hello->drawMenu();
+   currentMenu->drawMenu();
 //   Serial.println(hello->getOptions());
 }

@@ -1,23 +1,27 @@
 #include "Options.h"
 
-Option::Option(OptionType type, char* text) {
+Option::Option(OptionType type, const char* text) {
     // text is assumed to be a correct value
     this->type = type;
-    for(size_t i = 0; text[i]; ++i) {
+    size_t i;
+    for(i = 0; text[i]; ++i) {
         this->text[i] = text[i];
     }
+    this->text[i] = '\0';
 }
 
-MenuOption::MenuOption(char* text, Menu* nextMenu) : Option(menuTransition, text), nextMenu(nextMenu) {
+MenuOption::MenuOption(const char* text, Menu* nextMenu) : Option(menuTransition, text), nextMenu(nextMenu) {
 }
 
 void MenuOption::getTextValue(char* writeHere) {
-    for(size_t i = 0; this->text[i]; ++i){
+    size_t i;
+    for(i = 0; this->text[i]; ++i){
         writeHere[i] = this->text[i];
     }
+    writeHere[i] = '\0';
 }
 
-SystemOption::SystemOption(char* text, int pin, int baseValue, int stepValue) : Option(sysValue, text), pin(pin),
+SystemOption::SystemOption(const char* text, int pin, int baseValue, int stepValue) : Option(sysValue, text), pin(pin),
  baseValue(baseValue), stepValue(stepValue), currentStep(5), currentValue(baseValue) {
 
 }
@@ -50,9 +54,10 @@ void SystemOption::getTextValue(char* writeHere) {
     for(size_t j = 0; number[j]; ++j) {
         writeHere[i++] = number[j];
     }
+    writeHere[i] = '\0';
 }
 
-GameOption::GameOption(char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
+GameOption::GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
 stepValue(stepValue), currentValue(baseValue), possibleSteps(possibleSteps) { }
 
 void GameOption::joystickInput(int xVal, int yVal) {
@@ -80,9 +85,10 @@ void GameOption::getTextValue(char* writeHere) {
     for(size_t j = 0; number[j]; ++j) {
         writeHere[i++] = number[j];
     }
+    writeHere[i] = '\0';
 }
 
-DisplayOption::DisplayOption(char* text, int* value) : Option(valueDisplay, text), value(value) {}
+DisplayOption::DisplayOption(const char* text, int* value) : Option(valueDisplay, text), value(value) {}
 
 void DisplayOption::getTextValue(char* writeHere) {
     size_t i = 0;
@@ -94,13 +100,15 @@ void DisplayOption::getTextValue(char* writeHere) {
     for(size_t j = 0; number[j]; ++j) {
         writeHere[i++] = number[j];
     }
+    writeHere[i] = '\0';
 }
 
-GreetingOption::GreetingOption(char* text) : Option(greeting, text) {}
+GreetingOption::GreetingOption(const char* text) : Option(greeting, text) {}
 
 void GreetingOption::getTextValue(char* writeHere) {
-        size_t i = 0;
+    size_t i = 0;
     for(i = 0; this->text[i]; ++i){
         writeHere[i] = this->text[i];
     }
+    writeHere[i] = '\0';
 }
