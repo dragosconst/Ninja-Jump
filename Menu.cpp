@@ -7,7 +7,7 @@ Menu::Menu() {
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
-Menu::Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu = false) {
+Menu::Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu = false, long timeDrawn = 0) {
     Serial.println("hewdewfewfvwfwfew22121212121121few");
     this->options = options;
     this->lcd = lcd;
@@ -15,6 +15,10 @@ Menu::Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu = fals
     this->greetingMenu = greetingMenu;
     this->currentOption = 0;
     this->finsihedDrawing = false;
+    this->timeDrawn = timeDrawn;
+    if(this->greetingMenu) {
+        this->spawned = millis();
+    }
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
@@ -25,7 +29,11 @@ Menu::Menu(const Menu& other) {
     this->greetingMenu = other.greetingMenu;
     this->currentOption = other.currentOption;
     this->finsihedDrawing = false;
+    this->timeDrawn = other.timeDrawn;
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
+    if(this->greetingMenu) {
+        this->spawned = millis();
+    }
 }
 
 Menu& Menu::operator=(const Menu& other) {
@@ -35,7 +43,11 @@ Menu& Menu::operator=(const Menu& other) {
     this->greetingMenu = other.greetingMenu;
     this->currentOption = other.currentOption;
     this->finsihedDrawing = false;
+    this->timeDrawn = other.timeDrawn;
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
+    if(this->greetingMenu) {
+        this->spawned = millis();
+    }
     return *this;
 }
 
@@ -99,12 +111,9 @@ void Menu::drawMenu() {
     }
 
     if(millis() - this->lastLetterDrawn >= this->drawInterval) {
-        Serial.println("new line");
-        Serial.println(lineText);
-        Serial.println(lineSize);
         this->lcd->setCursor(this->currentPos, this->currentLine);
         char printChar = lineText[this->currentPos];
-        Serial.println(printChar);
+        Serial.println(this->currentLine);
         this->lcd->print(printChar);
         this->currentPos += 1;
         if(this->currentPos >= lineSize) {
@@ -116,29 +125,15 @@ void Menu::drawMenu() {
         }
         this->lastLetterDrawn = millis();
     }
-    // if(this->currentLine >= 2) {
-    //     Serial.println("bruhino");
-    //     return; // everything was already drawn
-    // }
+}
 
-    // int currentPosition = this->currentLine * 16 + this->currentPos;
-    // if(currentPosition >= this->options_raw_text_len) {
-    //     Serial.println("bruh");
-    //     return;
-    // }
-
-    // if(millis() - this->lastLetterDrawn >= this->drawInterval) {
-    //     this->lcd->setCursor(this->currentPos, this->currentLine);
-    //     char printChar = this->options_raw_text[currentPosition];
-    //     Serial.println("point one");
-    //     this->lcd->print(printChar);
-    //     Serial.println("point two");
-    //     this->currentPos += 1;
-    //     if(this->currentPos >= 16) {
-    //         this->currentPos = 0;
-    //         this->currentLine += 1;
-    //     }
-    //     this->lastLetterDrawn = millis();
-    // }
-    // Serial.println("finished function call");
+// for greetings menu, kill itself and transition to the next menu
+void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
+    if(!this->greetingMenu)
+        return;
+    if(millis() - this->spawned > this->timeDrawn) {
+        Serial.println(this->spawned);
+        Serial.println(millis());
+        *currentMenu = nextMenu;
+    }
 }

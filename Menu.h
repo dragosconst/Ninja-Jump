@@ -23,6 +23,8 @@ private:
     bool greetingMenu;
     LiquidCrystal* lcd;
     bool finsihedDrawing;
+    long timeDrawn;
+    long spawned;
 
     int getArduinoLine(int line, char* writeHere);
 public:
@@ -30,13 +32,16 @@ public:
     static const int drawInterval = 40; // interval at which to draw the menu
 
     Menu();
-    Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu);
+    Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu, long timeDrawn=0);
     Menu(const Menu& other);
     Menu& operator=(const Menu& other);
     ~Menu() { }
 
     void drawMenu();
     void blinkCursor();
+    void killSelf(Menu** currentMenu, Menu* nextMenu);
+
+    bool isGreeting() const { return this->greetingMenu; }
 };
 
 #endif

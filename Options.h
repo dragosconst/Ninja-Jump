@@ -45,7 +45,7 @@ public:
     ~MenuOption() { }
 
     void focus(Menu* currentMenu) { currentMenu = nextMenu; this->unfocus(); }
-    void joystickInput(int xVal, int yVal) const { } // this is just a menu transition, it won't do anything with joystick inputs
+    void joystickInput(int xVal, int yVal) { } // this is just a menu transition, it won't do anything with joystick inputs
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
 };
