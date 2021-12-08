@@ -129,6 +129,7 @@ void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
     if(!this->greetingMenu)
         return;
     if(millis() - this->lastLetterDrawn > this->timeDrawn) {
+        this->clear();
         *currentMenu = nextMenu;
     }
 }

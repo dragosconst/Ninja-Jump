@@ -52,7 +52,7 @@ int difficulty = Normal;
 Player player;
 World world;
 
-Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats;
+Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats, gameOver;
 MenuOption welcomeMessage;
 
 MenuOption playOption, settingsOption, aboutOption, highSchoreOption;
@@ -66,12 +66,15 @@ MenuOption backSetOption;
 
 DisplayOption height, lives;
 
+MenuOption gameOverOption;
+
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
 Option* grOptsStArr[4];
 Option* grOptsPlArr[2];
-Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr);
+Option* grOptsGoArr[1];
+Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr), grOptsGo(grOptsGoArr);
 Menu* currentMenu;
 
 void createMenus() {
@@ -117,6 +120,13 @@ void createMenus() {
   grOptsMn.push_back(&playOption); grOptsMn.push_back(&settingsOption); grOptsMn.push_back(&aboutOption); grOptsMn.push_back(&highSchoreOption);
   Menu _mainMenu(&grOptsMn, &lcd, false);
   mainMenu = _mainMenu;
+
+
+  MenuOption _gameOverOption("  Game over!\n", &mainMenu);
+  gameOverOption = _gameOverOption;
+  grOptsGo.push_back(&gameOverOption);
+  Menu _gameOver(&grOptsGo, &lcd, true, 2000);
+  gameOver = _gameOver;
 
 
   currentMenu = &greetingsMenu;
@@ -231,9 +241,21 @@ void loop() {
     currentState = BrowsingMenus;
   } 
 
+  if(currentState == PlayingGame && player.getLives() <= 0) {
+    currentState = BrowsingMenus;
+    currentMenu->clear();
+    currentMenu = &gameOver;
+  }
+
   world.drawOnMatrix();
   currentMenu->drawMenu();
   currentMenu->blinkCursor();
+  if(currentState == PlayingGame) {
+    if(millis() - Player::lastJumped >= Player::jumpInterval) {
+      player.fall(); // check if they should fall
+      Player::lastJumped = millis();
+    }
+  }
   handleJoyInputs();
   handleJoyClick();
   if(currentMenu->isGreeting()) 

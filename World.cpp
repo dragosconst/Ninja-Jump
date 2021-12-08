@@ -46,7 +46,7 @@ World::World(LedControl* lc, Player* player) : lc(lc), player(player) {
 void World::drawOnMatrix() {
     int row = 0;
     this->map[this->player->getY()][this->player->getX()] = 1;
-    for(int i = player->getY() - 6; i <= player->getY() + 1; ++i) {
+    for(int i = (player->getY() == 0 ? 7 : player->getY() - 6); i <= (player->getY() == 0 ? 0 : player->getY() + 1); ++i) {
         for(int j = 0; j < 8; ++j) {
             this->lc->setLed(0, j, row, this->map[i][j]);
         }
