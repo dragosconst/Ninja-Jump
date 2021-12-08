@@ -9,6 +9,7 @@ class Player;
 
 class World {
 private:
+    friend class Player;
     byte map[16][8];
     LedControl* lc;
     Player* player;

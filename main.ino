@@ -139,7 +139,7 @@ void setup() {
   analogWrite(contrastPin, contrast);
   analogWrite(brightnessPin, brightness);
   
-  player = Player(3, 10, 2, 14);
+  player = Player(3, 10, 2, 14, &world);
   world = World(&lc, &player);
   createMenus();
   currentState = BrowsingMenus;
@@ -185,12 +185,20 @@ bool newJoyClick() {
 void handleJoyInputs() {
   int xVal = analogRead(xPin);
   int yVal = analogRead(yPin);
-  if(!newMovement(xVal, yVal))
+  if(currentState == BrowsingMenus && !newMovement(xVal, yVal))
     return;
   if(currentState == BrowsingMenus) {
     xVal = refineInput(xVal);
     yVal = refineInput(yVal);
     currentMenu->joystickInput(xVal, yVal);
+  }
+  else {
+    if(millis() - Player::lastMoved >= Player::moveInterval){
+      xVal = refineInput(xVal);
+      yVal = refineInput(yVal);
+      player.move(xVal, yVal);
+      Player::lastMoved = millis();
+    }
   }
 }
 
