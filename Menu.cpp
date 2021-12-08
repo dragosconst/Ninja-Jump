@@ -171,3 +171,50 @@ void Menu::blinkCursor() {
         Menu::lastCursorBlink = millis();
     }
 }
+
+// could possibly be more efficient to store this somewhere in the object? will see later
+byte Menu::getLastLine() {
+    byte line = 0;    
+    byte optionsLen = this->options->size();
+    for(size_t i = 0; i < optionsLen; ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        crOption->getTextValue(optionText);
+        for(size_t k = 0; optionText[k]; ++k) {
+            if(optionText[k] == '\n') {
+                line += 1;
+            }
+        }
+    }
+    return line;
+}
+
+void Menu::joystickInput(int xVal, int yVal) {
+    if(xVal) {
+        Point cursorPos = this->findCursorPosition();
+        byte lineOnLed = cursorPos.y - this->firstLineShown, colOnLed = cursorPos.x;
+        this->lcd->setCursor(colOnLed, lineOnLed);
+        this->lcd->print(" ");
+        Menu::blinkState = LOW;
+    }
+
+
+    if(xVal == 1) {
+        if(this->optionSelected != this->options->size() - 1) {
+            this->optionSelected += 1;
+        }
+        else {
+            this->optionSelected = 0;
+        }
+    }
+    if(xVal == -1) {            
+        if(this->optionSelected) {
+            this->optionSelected -= 1;
+        }
+        else {
+            this->optionSelected = this->options->size() - 1;
+        }
+    }
+
+    // TODO: y movement
+}

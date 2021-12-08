@@ -27,6 +27,7 @@ private:
     int timeDrawn;
 
     int getArduinoLine(int line, char* writeHere);
+    byte getLastLine();
     Point findCursorPosition();
 public:
     static const int cursorBlink; // interval at which the cursor blinks
@@ -43,6 +44,7 @@ public:
     void drawMenu();
     void blinkCursor();
     void killSelf(Menu** currentMenu, Menu* nextMenu);
+    void joystickInput(int xVal, int yVal);
 
     bool isGreeting() const { return this->greetingMenu; }
 };
