@@ -17,6 +17,8 @@ public:
     void decreaseHealth();
     void increaseHeight(int amount);
 
+    int getX() const { return this->x; }
+    int getY() const { return this->y; }
     int* getLivesAddr()  { return &this->lives;}
     int* getHeightAddr() { return &this->height; }
 };

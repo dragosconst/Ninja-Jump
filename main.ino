@@ -1,6 +1,7 @@
 #include "LedControl.h"
 #include <LiquidCrystal.h>
 #include "Menu.h"
+#include "World.h"
 #include "Player.h"
 
 enum GameStates {BrowsingMenus, PlayingGame};
@@ -49,6 +50,7 @@ GameStates currentState;
 int difficulty = Normal;
 
 Player player;
+World world;
 
 Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats;
 MenuOption welcomeMessage;
@@ -137,7 +139,8 @@ void setup() {
   analogWrite(contrastPin, contrast);
   analogWrite(brightnessPin, brightness);
   
-  player = Player(3, 10, 3, 2);
+  player = Player(3, 10, 2, 14);
+  world = World(&lc, &player);
   createMenus();
   currentState = BrowsingMenus;
 }
@@ -220,6 +223,7 @@ void loop() {
     currentState = BrowsingMenus;
   } 
 
+  world.drawOnMatrix();
   currentMenu->drawMenu();
   currentMenu->blinkCursor();
   handleJoyInputs();
