@@ -1,6 +1,6 @@
 #ifndef OPTION_H
 #define OPTION_H
-#define MAX_OPTION_TEXT = 17
+#define MAX_OPTION_TEXT 17
 
 #include "Arduino.h"
 #include <Vector.h>
@@ -22,12 +22,11 @@ class Menu;
 // !!!! For an option that's supposed to be the last option on a LCD line, make sure to add \n at the end.
 class Option {
 protected:
-    OptionType type;
-    char text[MAX_OPT_TEXT];
+    char text[MAX_OPTION_TEXT];
     bool inFocus = false;
 public:
     Option() {}
-    Option(OptionType type, const char* text);
+    Option(const char* text);
     ~Option() { }
 
     virtual void focus(Menu* currentMenu) = 0; // focused will execute the action expected when selecting the option

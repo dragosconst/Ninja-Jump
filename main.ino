@@ -49,7 +49,7 @@ void createMenus() {
   Menu menu(&grOpts, &lcd, true, 3000);
   greetingsMenu = menu;
 
-  MenuOption _playOption("Play", &playStats), _settingsOption("Settings\n", &optionsMenu), _aboutOption("About", &aboutMenu), _highScoreOption("Scores", &highScoreMenu);
+  MenuOption _playOption(" Play", &playStats), _settingsOption("Settings\n", &optionsMenu), _aboutOption(" About", &aboutMenu), _highScoreOption("Scores\n", &highScoreMenu);
   playOption = _playOption;
   settingsOption = _settingsOption;
   aboutOption = _aboutOption;
@@ -74,7 +74,7 @@ void setup() {
   pinMode(brightnessPin, OUTPUT);  
   analogWrite(contrastPin, contrast);
   analogWrite(brightnessPin, brightness);
-
+  
   createMenus();
 }
 

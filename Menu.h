@@ -1,8 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-#define MAX_OPT_TEXT 100
-
 #include "Arduino.h"
 #include <Vector.h>
 #include "LiquidCrystal.h"

@@ -2,14 +2,12 @@
 #include "Menu.h"
 
 Menu::Menu() {
-    Serial.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahewdewfewfvwfwfewfew");
     this->finsihedDrawing = false;
     this->optionSelected = 0;
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
 Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0) {
-    Serial.println("hewdewfewfvwfwfew22121212121121few");
     this->options = options;
     this->lcd = lcd;
     this->optionSelected = 0;
@@ -20,7 +18,6 @@ Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = fal
 }
 
 Menu::Menu(const Menu& other) {
-    Serial.println("hewdewfedafdsfdsafdewfqfqefqewfvwfwfewfew");
     this->options = other.options;
     this->optionSelected = 0;
     this->lcd = other.lcd;
@@ -31,7 +28,6 @@ Menu::Menu(const Menu& other) {
 }
 
 Menu& Menu::operator=(const Menu& other) {
-    Serial.println("hewdewfewfvwfwfewfew");
     this->options = other.options;
     this->optionSelected = 0;
     this->lcd = other.lcd;
@@ -46,7 +42,7 @@ int Menu::getArduinoLine(int line, char* writeHere) {
     int currentLine = 0;
     size_t i;
     for(i = 0; i < this->options->size() && currentLine != line; ++i) {
-        char optionText[MAX_OPT_TEXT];
+        char optionText[MAX_OPTION_TEXT];
         Option* crOption = (*this->options)[i];
         crOption->getTextValue(optionText);
         for(size_t j = 0; optionText[j]; ++j) {
@@ -57,10 +53,10 @@ int Menu::getArduinoLine(int line, char* writeHere) {
     }
 
     // now i points to the first word on the corresponding line
-    char rawText[MAX_OPT_TEXT];
+    char rawText[MAX_OPTION_TEXT];
     size_t j = 0;
     for(; i < this->options->size(); ++i) {
-        char optionText[MAX_OPT_TEXT];
+        char optionText[MAX_OPTION_TEXT];
         Option* crOption = (*this->options)[i];
         crOption->getTextValue(optionText);
         bool last = false;
@@ -94,7 +90,7 @@ void Menu::drawMenu() {
     if(this->finsihedDrawing)
         return;
     
-    char lineText[MAX_OPT_TEXT];
+    char lineText[MAX_OPTION_TEXT];
     int lineSize = this->getArduinoLine(this->currentLine, lineText);
     if(lineSize <= 0) {
         this->finsihedDrawing = true;
