@@ -68,7 +68,7 @@ int Menu::getArduinoLine(int line, char* writeHere) {
             if(optionText[k] == '\n') 
                 last = true;
         }
-        if(j < 16) {
+        if(j < 16 && !last) {
             rawText[j++] = ' ';
         }
         if(last)
@@ -101,9 +101,11 @@ void Menu::drawMenu() {
     if(millis() - this->lastLetterDrawn >= this->drawInterval) {
         this->lcd->setCursor(this->currentPos, this->currentLine);
         char printChar = lineText[this->currentPos];
+        Serial.println(printChar);
         this->lcd->print(printChar);
         this->currentPos += 1;
-        if(this->currentPos >= lineSize) {
+        Serial.println(lineSize);
+        if(this->currentPos > lineSize) {
             this->currentPos = 0;
             this->currentLine += 1;
             if(this->currentLine == this->firstLineShown + 2) {
@@ -112,6 +114,14 @@ void Menu::drawMenu() {
         }
         this->lastLetterDrawn = millis();
     }
+}
+
+void Menu::clear() {
+    this->lcd->clear();
+    this->finsihedDrawing = 0;
+    this->optionSelected = 0;
+    this->firstLineShown = 0;
+    this->currentLine = 0;
 }
 
 // for greetings menu, kill itself and transition to the next menu
@@ -182,6 +192,12 @@ byte Menu::getLastLine() {
     return line;
 }
 
+// should check whether an option is focused or not, in order to propagate joystick inputs to it
+bool Menu::checkOptionFocused() {
+    Option* currentOption = (*this->options)[this->optionSelected];
+    return currentOption->isFocused();
+}
+
 void Menu::joystickInput(int xVal, int yVal) {
     if(xVal) {
         Point cursorPos = this->findCursorPosition();
@@ -212,6 +228,12 @@ void Menu::joystickInput(int xVal, int yVal) {
     // TODO: y movement
 }
 
-void Menu::joystickClicked() {
-    Serial.println("click");
+void Menu::joystickClicked(Menu** currentMenu) {
+    Option* currentOption = (*this->options)[this->optionSelected];
+    if(currentOption->isFocused()) {
+        currentOption->unfocus(); // unfocus on second click, it makes sense for options that change values
+    }
+    else {
+        currentOption->focus(currentMenu);
+    }
 }

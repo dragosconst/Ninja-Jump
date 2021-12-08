@@ -29,6 +29,7 @@ private:
     int getArduinoLine(int line, char* writeHere);
     byte getLastLine();
     Point findCursorPosition();
+    bool checkOptionFocused();
 public:
     static const int cursorBlink; // interval at which the cursor blinks
     static const byte drawInterval; // interval at which to draw the menu
@@ -42,10 +43,11 @@ public:
     ~Menu() { }
 
     void drawMenu();
+    void clear();
     void blinkCursor();
     void killSelf(Menu** currentMenu, Menu* nextMenu);
     void joystickInput(int xVal, int yVal);
-    void joystickClicked();
+    void joystickClicked(Menu** currentMenu);
 
     bool isGreeting() const { return this->greetingMenu; }
 };

@@ -1,6 +1,6 @@
 #ifndef OPTION_H
 #define OPTION_H
-#define MAX_OPTION_TEXT 17
+#define MAX_OPTION_TEXT 18
 
 #include "Arduino.h"
 #include <Vector.h>
@@ -29,7 +29,9 @@ public:
     Option(const char* text);
     ~Option() { }
 
-    virtual void focus(Menu* currentMenu) = 0; // focused will execute the action expected when selecting the option
+    bool isFocused() const { return this->inFocus; }
+
+    virtual void focus(Menu** currentMenu) = 0; // focused will execute the action expected when selecting the option
     virtual void joystickInput(int xVal, int yVal) = 0; // feeds input to the joystick
     virtual void unfocus() = 0; // makes sense for value changing menus
     virtual void getTextValue(char* writeHere) = 0;
@@ -43,7 +45,7 @@ public:
     MenuOption(const char* text, Menu* nextMenu);
     ~MenuOption() { }
 
-    void focus(Menu* currentMenu) { currentMenu = nextMenu; this->unfocus(); }
+    void focus(Menu** currentMenu);
     void joystickInput(int xVal, int yVal) { } // this is just a menu transition, it won't do anything with joystick inputs
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
@@ -61,7 +63,7 @@ public:
     SystemOption(const char* text, int pin, int baseValue, int stepValue);
     ~SystemOption() {}
 
-    void focus(Menu* currentMenu) { this->inFocus = true;}
+    void focus(Menu** currentMenu) { this->inFocus = true;}
     void joystickInput(int xVal, int yVal);
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
@@ -79,7 +81,7 @@ public:
     GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps);
     ~GameOption() {}
 
-    void focus(Menu* currentMenu) { this->inFocus = true;}
+    void focus(Menu** currentMenu) { this->inFocus = true;}
     void joystickInput(int xVal, int yVal);
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
@@ -93,7 +95,7 @@ public:
     DisplayOption(const char* text, int* value);
     ~DisplayOption() {}
 
-    void focus(Menu* currentMenu) {} // these won't ever fire, this class just displays a value
+    void focus(Menu** currentMenu) {} // these won't ever fire, this class just displays a value
     void joystickInput(int xVal, int yVal) {} 
     void unfocus() {}
     void getTextValue(char* writeHere);
@@ -105,7 +107,7 @@ public:
     GreetingOption(const char* text);
     ~GreetingOption() {}
 
-    void focus(Menu* currentMenu) {}
+    void focus(Menu** currentMenu) {}
     void joystickInput(int xVal, int yVal) {} 
     void unfocus() {}
     void getTextValue(char* writeHere);

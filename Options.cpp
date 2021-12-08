@@ -12,6 +12,12 @@ Option::Option(const char* text) {
 MenuOption::MenuOption(const char* text, Menu* nextMenu) : Option(text), nextMenu(nextMenu) {
 }
 
+void MenuOption::focus(Menu** currentMenu) {
+    (*currentMenu)->clear(); 
+    *currentMenu = nextMenu; 
+    this->unfocus(); 
+}
+
 void MenuOption::getTextValue(char* writeHere) {
     size_t i;
     for(i = 0; this->text[i]; ++i){

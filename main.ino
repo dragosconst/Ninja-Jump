@@ -21,7 +21,7 @@ const int D6 = 4;
 const int D7 = 2;
 const int brightnessPin = 11;
 
-int contrast = 55;
+int contrast = 60;
 int brightness = 200;
 
 const byte matrixSize = 8;
@@ -48,9 +48,12 @@ GameStates currentState;
 Menu greetingsMenu, mainMenu, optionsMenu, aboutMenu, highScoreMenu, playStats;
 GreetingOption welcomeMessage;
 MenuOption playOption, settingsOption, aboutOption, highSchoreOption;
+MenuOption aboutLineOne;
+GreetingOption aboutLineTwo;
 Option* grOptsArr[1];
+Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
-Vector<Option*> grOpts(grOptsArr), grOptsMn(grOptsMnArr);
+Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr);
 Menu* currentMenu;
 
 void createMenus() {
@@ -60,6 +63,14 @@ void createMenus() {
   grOpts.push_back(&welcomeMessage);
   Menu menu(&grOpts, &lcd, true, 3000);
   greetingsMenu = menu;
+
+  MenuOption _aboutLineOne(" Check my stuff\n", &mainMenu);
+  GreetingOption _aboutLineTwo(" bit.ly/3EBftyx\n");
+  aboutLineOne = _aboutLineOne;
+  aboutLineTwo = _aboutLineTwo;
+  grOptsAb.push_back(&aboutLineOne); grOptsAb.push_back(&aboutLineTwo);
+  Menu _aboutMenu(&grOptsAb, &lcd, false);
+  aboutMenu = _aboutMenu;
 
   MenuOption _playOption(" Play", &playStats), _settingsOption("Settings\n", &optionsMenu), _aboutOption(" About", &aboutMenu), _highScoreOption("Scores\n", &highScoreMenu);
   playOption = _playOption;
@@ -160,7 +171,7 @@ void handleJoyClick() {
   clicked = HIGH;
 
   if(currentState == BrowsingMenus) {
-    currentMenu->joystickClicked();
+    currentMenu->joystickClicked(&currentMenu);
   }
   previousSwReading = swReading;
 }
