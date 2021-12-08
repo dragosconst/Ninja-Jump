@@ -105,7 +105,7 @@ void GameOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-DisplayOption::DisplayOption(const char* text, int* value) : Option(text), value(value) {}
+DisplayOption::DisplayOption(const char* text, int* value, bool last) : Option(text), value(value), last(last) {}
 
 void DisplayOption::getTextValue(char* writeHere) {
     size_t i = 0;
@@ -117,6 +117,8 @@ void DisplayOption::getTextValue(char* writeHere) {
     for(size_t j = 0; number[j]; ++j) {
         writeHere[i++] = number[j];
     }
+    if(this->last)
+        writeHere[i++] = '\n';
     writeHere[i] = '\0';
 }
 

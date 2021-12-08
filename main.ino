@@ -1,6 +1,7 @@
 #include "LedControl.h"
 #include <LiquidCrystal.h>
 #include "Menu.h"
+#include "Player.h"
 
 enum GameStates {BrowsingMenus, PlayingGame};
 enum Difficulties {Easy = 0, Normal, Hard};
@@ -47,6 +48,8 @@ LiquidCrystal lcd(RSPin, EPin, D4, D5, D6, D7);
 GameStates currentState;
 int difficulty = Normal;
 
+Player player;
+
 Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats;
 MenuOption welcomeMessage;
 
@@ -59,11 +62,14 @@ SystemOption contrastOption, brightOption;
 GameOption diffOption; // maybe volume too?
 MenuOption backSetOption;
 
+DisplayOption height, lives;
+
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
 Option* grOptsStArr[4];
-Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr);
+Option* grOptsPlArr[2];
+Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr);
 Menu* currentMenu;
 
 void createMenus() {
@@ -92,6 +98,13 @@ void createMenus() {
   grOptsSt.push_back(&contrastOption); grOptsSt.push_back(&brightOption); grOptsSt.push_back(&diffOption); grOptsSt.push_back(&backSetOption);
   Menu _settingsMenu(&grOptsSt, &lcd, false);
   settingsMenu = _settingsMenu;
+
+  DisplayOption _height("Height: ", player.getHeightAddr(), true), _lives("Lives: ", player.getLivesAddr(), false);
+  height = _height;
+  lives = _lives;
+  grOptsPl.push_back(&height); grOptsPl.push_back(&lives);
+  Menu _playStats(&grOptsPl, &lcd, false);
+  playStats = _playStats;
 
 
   MenuOption _playOption("Play", &playStats), _settingsOption("Settings\n", &settingsMenu), _aboutOption("About", &aboutMenu), _highScoreOption("Scores\n", &highScoreMenu);
@@ -124,6 +137,7 @@ void setup() {
   analogWrite(contrastPin, contrast);
   analogWrite(brightnessPin, brightness);
   
+  player = Player(3, 10, 3, 2);
   createMenus();
   currentState = BrowsingMenus;
 }
@@ -199,6 +213,13 @@ void handleJoyClick() {
 }
 
 void loop() {
+  if(currentMenu == &playStats && currentState == BrowsingMenus) {
+    currentState = PlayingGame;
+  }
+  else if(currentMenu != &playStats && currentState == PlayingGame) {
+    currentState = BrowsingMenus;
+  } 
+
   currentMenu->drawMenu();
   currentMenu->blinkCursor();
   handleJoyInputs();

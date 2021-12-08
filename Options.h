@@ -92,9 +92,10 @@ public:
 class DisplayOption : public Option {
 private:
     int* value; // using a pointer to the value so we don't have to bother with getters and setters
+    bool last;
 public:
     DisplayOption() {}
-    DisplayOption(const char* text, int* value);
+    DisplayOption(const char* text, int* value, bool last);
     ~DisplayOption() {}
 
     void focus(Menu** currentMenu) {} // these won't ever fire, this class just displays a value
