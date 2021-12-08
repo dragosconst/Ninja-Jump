@@ -8,6 +8,11 @@
 
 class Option;
 
+struct Point {
+    int x, y;
+    Point(int x, int y) {this->x = x; this->y = y;}
+};
+
 class Menu {
 private:
     Vector<Option*>* options;
@@ -22,9 +27,12 @@ private:
     int timeDrawn;
 
     int getArduinoLine(int line, char* writeHere);
+    Point findCursorPosition();
 public:
-    static const byte cursorBlink = 70; // interval at which the cursor blinks
-    static const byte drawInterval = 40; // interval at which to draw the menu
+    static const int cursorBlink; // interval at which the cursor blinks
+    static const byte drawInterval; // interval at which to draw the menu
+    static long lastCursorBlink; // we don't really need to store this for each menu
+    static bool blinkState;
 
     Menu();
     Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0);

@@ -81,7 +81,9 @@ void setup() {
 
 void loop() {
    currentMenu->drawMenu();
+   currentMenu->blinkCursor();
    if(currentMenu->isGreeting()) 
     currentMenu->killSelf(&currentMenu, &mainMenu);
+
 //   Serial.println(hello->getOptions());
 }

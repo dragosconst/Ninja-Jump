@@ -1,6 +1,11 @@
 #include "Arduino.h"
 #include "Menu.h"
 
+const int Menu::cursorBlink = 500;
+const byte Menu::drawInterval = 40;
+long Menu::lastCursorBlink = 0;
+bool Menu::blinkState = LOW;
+
 Menu::Menu() {
     this->finsihedDrawing = false;
     this->optionSelected = 0;
@@ -67,7 +72,7 @@ int Menu::getArduinoLine(int line, char* writeHere) {
             if(optionText[k] == '\n') 
                 last = true;
         }
-        if(j < 15) {
+        if(j < 16) {
             rawText[j++] = ' ';
         }
         if(last)
@@ -122,5 +127,47 @@ void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
         Serial.println(this->lastLetterDrawn);
         Serial.println(millis());
         *currentMenu = nextMenu;
+    }
+}
+
+Point Menu::findCursorPosition() {
+    byte optionsLen = this->options->size();
+    byte line = 0, col = 0;
+    // line will point to the "line" in the options (they are delimitied by \n) and col will point to the last character before the current word
+    // meaning that, after iterating through a word, it will be placed exactly where the blink cursor needs to be for the next word (and so on)
+    for(size_t i = 0; i < optionsLen; ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        crOption->getTextValue(optionText);
+        if(i == this->optionSelected) {
+            return Point(col, line);
+        }
+        for(size_t k = 0; optionText[k]; ++k) {
+            col++;
+            if(optionText[k] == '\n') {
+                col = 0;
+                line += 1;
+            }
+        }
+    }
+}
+
+void Menu::blinkCursor() {
+    if(!this->finsihedDrawing || this->greetingMenu)
+        return;
+    Point cursorPos = this->findCursorPosition();
+    byte lineOnLed = cursorPos.y - this->firstLineShown, colOnLed = cursorPos.x;
+
+    if(millis() - Menu::lastCursorBlink >= Menu::cursorBlink) {
+        this->lcd->setCursor(colOnLed, lineOnLed);
+        if(!Menu::blinkState) {
+            this->lcd->print(">");
+            Menu::blinkState = HIGH;
+        }
+        else {
+            this->lcd->print(" ");
+            Menu::blinkState = LOW;
+        }
+        Menu::lastCursorBlink = millis();
     }
 }
