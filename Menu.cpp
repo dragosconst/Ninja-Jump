@@ -4,59 +4,50 @@
 Menu::Menu() {
     Serial.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahewdewfewfvwfwfewfew");
     this->finsihedDrawing = false;
+    this->optionSelected = 0;
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
-Menu::Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu = false, long timeDrawn = 0) {
+Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0) {
     Serial.println("hewdewfewfvwfwfew22121212121121few");
     this->options = options;
     this->lcd = lcd;
-    this->cursor_x = this->cursor_y = this->o_x = this->o_y = 0;
+    this->optionSelected = 0;
     this->greetingMenu = greetingMenu;
-    this->currentOption = 0;
     this->finsihedDrawing = false;
     this->timeDrawn = timeDrawn;
-    if(this->greetingMenu) {
-        this->spawned = millis();
-    }
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
 Menu::Menu(const Menu& other) {
     Serial.println("hewdewfedafdsfdsafdewfqfqefqewfvwfwfewfew");
     this->options = other.options;
+    this->optionSelected = 0;
     this->lcd = other.lcd;
     this->greetingMenu = other.greetingMenu;
-    this->currentOption = other.currentOption;
     this->finsihedDrawing = false;
     this->timeDrawn = other.timeDrawn;
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
-    if(this->greetingMenu) {
-        this->spawned = millis();
-    }
 }
 
 Menu& Menu::operator=(const Menu& other) {
     Serial.println("hewdewfewfvwfwfewfew");
     this->options = other.options;
+    this->optionSelected = 0;
     this->lcd = other.lcd;
     this->greetingMenu = other.greetingMenu;
-    this->currentOption = other.currentOption;
     this->finsihedDrawing = false;
     this->timeDrawn = other.timeDrawn;
     Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
-    if(this->greetingMenu) {
-        this->spawned = millis();
-    }
     return *this;
 }
 
 int Menu::getArduinoLine(int line, char* writeHere) {
     int currentLine = 0;
     size_t i;
-    for(i = 0; i < this->options.size() && currentLine != line; ++i) {
+    for(i = 0; i < this->options->size() && currentLine != line; ++i) {
         char optionText[MAX_OPT_TEXT];
-        Option* crOption = this->options[i];
+        Option* crOption = (*this->options)[i];
         crOption->getTextValue(optionText);
         for(size_t j = 0; optionText[j]; ++j) {
             if(optionText[j] == '\n') {
@@ -68,9 +59,9 @@ int Menu::getArduinoLine(int line, char* writeHere) {
     // now i points to the first word on the corresponding line
     char rawText[MAX_OPT_TEXT];
     size_t j = 0;
-    for(; i < this->options.size(); ++i) {
+    for(; i < this->options->size(); ++i) {
         char optionText[MAX_OPT_TEXT];
-        Option* crOption = this->options[i];
+        Option* crOption = (*this->options)[i];
         crOption->getTextValue(optionText);
         bool last = false;
         // Serial.print(i);
@@ -131,8 +122,8 @@ void Menu::drawMenu() {
 void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
     if(!this->greetingMenu)
         return;
-    if(millis() - this->spawned > this->timeDrawn) {
-        Serial.println(this->spawned);
+    if(millis() - this->lastLetterDrawn > this->timeDrawn) {
+        Serial.println(this->lastLetterDrawn);
         Serial.println(millis());
         *currentMenu = nextMenu;
     }

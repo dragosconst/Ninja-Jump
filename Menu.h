@@ -12,10 +12,8 @@ class Option;
 
 class Menu {
 private:
-    Vector<Option*> options;
-    int currentOption;
-    int cursor_x, cursor_y; // positions of player cursor on the menu
-    int o_x, o_y; // to which option the cursor points logically, not its actual position on the menu
+    Vector<Option*>* options;
+    byte optionSelected;
     long lastLetterDrawn = 0; // time at which the last letter was drawn
     byte currentLine = 0; // current line being drawn
     byte currentPos = 0; // current position on current line
@@ -23,16 +21,15 @@ private:
     bool greetingMenu;
     LiquidCrystal* lcd;
     bool finsihedDrawing;
-    long timeDrawn;
-    long spawned;
+    int timeDrawn;
 
     int getArduinoLine(int line, char* writeHere);
 public:
-    static const int cursorBlink = 70; // interval at which the cursor blinks
-    static const int drawInterval = 40; // interval at which to draw the menu
+    static const byte cursorBlink = 70; // interval at which the cursor blinks
+    static const byte drawInterval = 40; // interval at which to draw the menu
 
     Menu();
-    Menu(Vector<Option*> options, LiquidCrystal* lcd, bool greetingMenu, long timeDrawn=0);
+    Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0);
     Menu(const Menu& other);
     Menu& operator=(const Menu& other);
     ~Menu() { }

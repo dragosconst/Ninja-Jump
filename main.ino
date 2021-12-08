@@ -46,7 +46,7 @@ void createMenus() {
   GreetingOption _welcomeMessage(_welcomeText);
   welcomeMessage = _welcomeMessage;
   grOpts.push_back(&welcomeMessage);
-  Menu menu(grOpts, &lcd, true, 3000);
+  Menu menu(&grOpts, &lcd, true, 3000);
   greetingsMenu = menu;
 
   MenuOption _playOption("Play", &playStats), _settingsOption("Settings\n", &optionsMenu), _aboutOption("About", &aboutMenu), _highScoreOption("Scores", &highScoreMenu);
@@ -55,7 +55,7 @@ void createMenus() {
   aboutOption = _aboutOption;
   highSchoreOption = _highScoreOption;
   grOptsMn.push_back(&playOption); grOptsMn.push_back(&settingsOption); grOptsMn.push_back(&aboutOption); grOptsMn.push_back(&highSchoreOption);
-  Menu _mainMenu(grOptsMn, &lcd, false);
+  Menu _mainMenu(&grOptsMn, &lcd, false);
   mainMenu = _mainMenu;
 
 
