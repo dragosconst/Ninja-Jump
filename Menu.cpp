@@ -9,7 +9,6 @@ bool Menu::blinkState = LOW;
 Menu::Menu() {
     this->finsihedDrawing = false;
     this->optionSelected = 0;
-    Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
 Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0) {
@@ -19,7 +18,6 @@ Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = fal
     this->greetingMenu = greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = timeDrawn;
-    Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
 Menu::Menu(const Menu& other) {
@@ -29,7 +27,6 @@ Menu::Menu(const Menu& other) {
     this->greetingMenu = other.greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = other.timeDrawn;
-    Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
 }
 
 Menu& Menu::operator=(const Menu& other) {
@@ -39,7 +36,6 @@ Menu& Menu::operator=(const Menu& other) {
     this->greetingMenu = other.greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = other.timeDrawn;
-    Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
     return *this;
 }
 
@@ -105,7 +101,6 @@ void Menu::drawMenu() {
     if(millis() - this->lastLetterDrawn >= this->drawInterval) {
         this->lcd->setCursor(this->currentPos, this->currentLine);
         char printChar = lineText[this->currentPos];
-        Serial.println(this->currentLine);
         this->lcd->print(printChar);
         this->currentPos += 1;
         if(this->currentPos >= lineSize) {
@@ -124,8 +119,6 @@ void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
     if(!this->greetingMenu)
         return;
     if(millis() - this->lastLetterDrawn > this->timeDrawn) {
-        Serial.println(this->lastLetterDrawn);
-        Serial.println(millis());
         *currentMenu = nextMenu;
     }
 }
@@ -217,4 +210,8 @@ void Menu::joystickInput(int xVal, int yVal) {
     }
 
     // TODO: y movement
+}
+
+void Menu::joystickClicked() {
+    Serial.println("click");
 }

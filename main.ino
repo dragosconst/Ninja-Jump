@@ -29,6 +29,12 @@ const byte matrixSize = 8;
 const int minThreshold = 200;
 const int maxThreshold = 600;
 bool joyMoved = false; // to be used for menu browsing only
+bool swState = LOW;
+bool clicked = LOW;
+byte swDebounce = 50;
+byte swReading = HIGH;
+byte previousSwReading = HIGH;
+long lastSwPush = 0;
 
 LedControl lc = LedControl(dinPin, clockPin, loadPin, 1); //DIN, CLK, LOAD, No. DRIVER
 
@@ -112,6 +118,20 @@ bool newMovement(int xVal, int yVal) {
   return false;
 }
 
+bool newJoyClick() {
+  if(swReading != previousSwReading) {
+    lastSwPush = millis();
+//    Serial.println("heee hei");
+  }
+
+  if(millis() - lastSwPush > swDebounce) {
+    swState = swReading;
+    if(swState == LOW)
+      return HIGH;
+  }
+  return LOW;
+}
+
 void handleJoyInputs() {
   int xVal = analogRead(xPin);
   int yVal = analogRead(yPin);
@@ -124,10 +144,32 @@ void handleJoyInputs() {
   }
 }
 
+void handleJoyClick() {
+  swReading = digitalRead(swPin);
+  bool clickResult = newJoyClick();
+  if(clickResult && clicked == HIGH) {
+    previousSwReading = swReading;
+    return;
+  }
+  if(!clickResult) {
+    clicked = LOW;
+    previousSwReading = swReading;
+    return;
+  }
+
+  clicked = HIGH;
+
+  if(currentState == BrowsingMenus) {
+    currentMenu->joystickClicked();
+  }
+  previousSwReading = swReading;
+}
+
 void loop() {
   currentMenu->drawMenu();
   currentMenu->blinkCursor();
   handleJoyInputs();
+  handleJoyClick();
   if(currentMenu->isGreeting()) 
     currentMenu->killSelf(&currentMenu, &mainMenu);
 

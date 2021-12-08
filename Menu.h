@@ -45,6 +45,7 @@ public:
     void blinkCursor();
     void killSelf(Menu** currentMenu, Menu* nextMenu);
     void joystickInput(int xVal, int yVal);
+    void joystickClicked();
 
     bool isGreeting() const { return this->greetingMenu; }
 };
