@@ -15,6 +15,15 @@ const int xPin = A0;
 const int yPin = A1;
 const int swPin = A2; // don't have enough pins unfortunately
 
+const int btPin = A3;
+bool btnState = HIGH;
+byte btDebounce = 50;
+byte btReading = HIGH;
+byte previousBtReading = HIGH;
+long lastBtPush = 0;
+bool btPushed = LOW;
+bool previousBtPush = LOW;
+
 const int contrastPin = 3;
 const int RSPin = 13;
 const int EPin = 9;
@@ -144,6 +153,8 @@ void setup() {
   pinMode(yPin, INPUT);
   pinMode(swPin, INPUT_PULLUP);
 
+  pinMode(btPin, INPUT_PULLUP);
+
   pinMode(contrastPin, OUTPUT);
   pinMode(brightnessPin, OUTPUT);  
   analogWrite(contrastPin, contrast);
@@ -192,6 +203,19 @@ bool newJoyClick() {
   return LOW;
 }
 
+bool newBtnPress() {
+  if(btReading != previousBtReading) {
+    lastBtPush = millis();
+  }
+
+  if(millis() - lastBtPush > btDebounce) {
+    btnState = btReading;
+    if(btnState == LOW)
+      return HIGH;
+  }
+  return LOW;
+}
+
 void handleJoyInputs() {
   int xVal = analogRead(xPin);
   int yVal = analogRead(yPin);
@@ -203,7 +227,7 @@ void handleJoyInputs() {
     currentMenu->joystickInput(xVal, yVal);
   }
   else {
-    if(millis() - Player::lastMoved >= Player::moveInterval){
+    if(millis() - Player::lastMoved >= (player.onStableGround() ? Player::moveInterval : Player::moveIntervalInAir)){
       xVal = refineInput(xVal);
       yVal = refineInput(yVal);
       player.move(xVal, yVal);
@@ -247,13 +271,47 @@ void loop() {
     currentMenu = &gameOver;
   }
 
+  if(currentState == PlayingGame) {
+    btReading = digitalRead(btPin);
+    if(newBtnPress() && !btPushed && player.onStableGround()) {
+      btPushed = HIGH;
+      player.startJumping();
+    }
+    // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
+    //   player.startJumping();
+    // }
+    else if(!newBtnPress() && btPushed && btReading == HIGH) {
+      player.stopJumping();
+      btPushed = LOW;
+    }
+    if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
+      player.stopJumping();
+    }
+    else {
+      Serial.println(millis() - Player::lastJumped);
+      Serial.println(millis());
+      Serial.println(Player::lastJumped);
+    }
+    previousBtReading = btReading;
+
+    if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
+      if(millis() - Player::lastMovedJump >= Player::jumpInterval) {
+        player.jump();
+        Player::lastMovedJump = millis();
+      }
+    }
+    else {
+      player.stopJumping();
+    }
+  }
+
   world.drawOnMatrix();
   currentMenu->drawMenu();
   currentMenu->blinkCursor();
   if(currentState == PlayingGame) {
-    if(millis() - Player::lastJumped >= Player::jumpInterval) {
+    if(millis() - Player::lastFell >= Player::fallInterval) {
       player.fall(); // check if they should fall
-      Player::lastJumped = millis();
+      Player::lastFell = millis();
     }
   }
   handleJoyInputs();

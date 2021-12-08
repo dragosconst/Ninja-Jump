@@ -13,12 +13,17 @@ private:
     int lives;
     int height;
     World* world;
+    bool jumping;
 public:
     static const int moveInterval = 40; // interval at which to move
+    static const int moveIntervalInAir = 120;
     static long lastMoved;
-    static const int maxJump = 200; // maximum amount of time spent jumping
-    static const int jumpInterval = 100; // interval at which to move in the air
+    static const int maxJump = 1000; // maximum amount of time spent jumping
+    static const int jumpInterval = 300; // interval at which to move in the air
+    static const int fallInterval = 200;
     static long lastJumped;
+    static long lastMovedJump;
+    static long lastFell;
 
     Player() {lives = 0; height = 0;}
     Player(int lives, int height, int x, int y, World* world);
@@ -30,9 +35,13 @@ public:
     void move(int xVal, int yVal);
     bool onStableGround() const;
     void fall();
+    void jump();
+    void startJumping() { Serial.println("hallo");Player::lastJumped = millis();this->jumping = true;}
+    void stopJumping() { this->jumping = false;}
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }
+    bool isJumping() const { return this->jumping; }
     int getLives() const { return this->lives;}
     int* getLivesAddr()  { return &this->lives;}
     int* getHeightAddr() { return &this->height; }
