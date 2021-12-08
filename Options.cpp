@@ -7,6 +7,7 @@ Option::Option(const char* text) {
         this->text[i] = text[i];
     }
     this->text[i] = '\0';
+    this->inFocus = false;
 }
 
 MenuOption::MenuOption(const char* text, Menu* nextMenu) : Option(text), nextMenu(nextMenu) {
@@ -26,26 +27,28 @@ void MenuOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-SystemOption::SystemOption(const char* text, int pin, int baseValue, int stepValue) : Option(text), pin(pin),
- baseValue(baseValue), stepValue(stepValue), currentStep(5), currentValue(baseValue) {
+SystemOption::SystemOption(const char* text, int pin, int baseValue, int stepValue, bool last) : Option(text), pin(pin),
+ baseValue(baseValue), stepValue(stepValue), currentStep(5), currentValue(baseValue), last(last) {
 
 }
 
 /// it's assumed xVal and yVal are either -1, 0 or 1
-void SystemOption::joystickInput(int xVal, int yVal) {
-    if(yVal == 1) {
+void SystemOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
+    if(yVal == -1) {
         if(this->currentValue == this->baseValue + this->stepValue * 5) // maximum possible values
             return;
         this->currentValue += this->stepValue;
         analogWrite(this->pin, this->currentValue);
         this->currentStep += 1;
+        currentMenu->updateOptionValue(this);
     }
-    else if(yVal == -1) {
+    else if(yVal == 1) {
         if(this->currentValue == this->baseValue - this->stepValue * 5)
             return;
         this->currentValue -= this->stepValue;
         analogWrite(this->pin, this->currentValue);
         this->currentStep -= 1;
+        currentMenu->updateOptionValue(this);
     }
 }
 
@@ -57,26 +60,33 @@ void SystemOption::getTextValue(char* writeHere) {
     char number[20];
     itoa(this->currentStep, number, 10);
     for(size_t j = 0; number[j]; ++j) {
+        if(this->currentStep < 10 && j == 0) {
+            writeHere[i++] = ' ';
+        }
         writeHere[i++] = number[j];
     }
+    if(this->last)
+        writeHere[i++] = '\n';
     writeHere[i] = '\0';
 }
 
-GameOption::GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps) : Option(text), valAddr(valAddr), baseValue(baseValue),
-stepValue(stepValue), currentValue(baseValue), possibleSteps(possibleSteps) { }
+GameOption::GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps, bool last) : Option(text), valAddr(valAddr), baseValue(baseValue),
+stepValue(stepValue), currentValue(baseValue), possibleSteps(possibleSteps), last(last) { }
 
-void GameOption::joystickInput(int xVal, int yVal) {
-        if(yVal == 1) {
+void GameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
+    if(yVal == -1) {
         if(this->currentValue == this->baseValue + this->possibleSteps / 2) // maximum possible values
             return;
         this->currentValue += this->stepValue;
         *this->valAddr = this->currentValue;
+        currentMenu->updateOptionValue(this);
     }
-    else if(yVal == -1) {
+    else if(yVal == 1) {
         if(this->currentValue == this->baseValue - this->possibleSteps / 2)
             return;
         this->currentValue -= this->stepValue;
         *this->valAddr = this->currentValue;
+        currentMenu->updateOptionValue(this);
     }
 }
 
@@ -90,6 +100,8 @@ void GameOption::getTextValue(char* writeHere) {
     for(size_t j = 0; number[j]; ++j) {
         writeHere[i++] = number[j];
     }
+    if(this->last)
+        writeHere[i++] = '\n';
     writeHere[i] = '\0';
 }
 

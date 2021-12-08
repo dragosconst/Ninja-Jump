@@ -19,7 +19,7 @@ private:
     byte optionSelected;
     long lastLetterDrawn = 0; // time at which the last letter was drawn
     byte currentLine = 0; // current line being drawn
-    byte currentPos = 0; // current position on current line
+    byte currentPos = 1; // current position on current line
     byte firstLineShown = 0; // for menus that have more than just two lines
     bool greetingMenu;
     LiquidCrystal* lcd;
@@ -48,6 +48,7 @@ public:
     void killSelf(Menu** currentMenu, Menu* nextMenu);
     void joystickInput(int xVal, int yVal);
     void joystickClicked(Menu** currentMenu);
+    void updateOptionValue(Option* option);
 
     bool isGreeting() const { return this->greetingMenu; }
 };

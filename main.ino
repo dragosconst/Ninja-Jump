@@ -3,6 +3,7 @@
 #include "Menu.h"
 
 enum GameStates {BrowsingMenus, PlayingGame};
+enum Difficulties {Easy = 0, Normal, Hard};
 
 const int dinPin = 12;
 const int clockPin = 8;
@@ -22,7 +23,7 @@ const int D7 = 2;
 const int brightnessPin = 11;
 
 int contrast = 60;
-int brightness = 200;
+int brightness = 150;
 
 const byte matrixSize = 8;
 
@@ -44,35 +45,56 @@ byte matrixBrightness = 2;
 LiquidCrystal lcd(RSPin, EPin, D4, D5, D6, D7);
 
 GameStates currentState;
+int difficulty = Normal;
 
-Menu greetingsMenu, mainMenu, optionsMenu, aboutMenu, highScoreMenu, playStats;
-GreetingOption welcomeMessage;
+Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats;
+MenuOption welcomeMessage;
+
 MenuOption playOption, settingsOption, aboutOption, highSchoreOption;
+
 MenuOption aboutLineOne;
 GreetingOption aboutLineTwo;
+
+SystemOption contrastOption, brightOption;
+GameOption diffOption; // maybe volume too?
+MenuOption backSetOption;
+
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
-Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr);
+Option* grOptsStArr[4];
+Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr);
 Menu* currentMenu;
 
 void createMenus() {
   const char* _welcomeText = "   Welcome! \n\0";
-  GreetingOption _welcomeMessage(_welcomeText);
+  MenuOption _welcomeMessage(_welcomeText, &mainMenu);
   welcomeMessage = _welcomeMessage;
   grOpts.push_back(&welcomeMessage);
   Menu menu(&grOpts, &lcd, true, 3000);
   greetingsMenu = menu;
 
-  MenuOption _aboutLineOne(" Check my stuff\n", &mainMenu);
-  GreetingOption _aboutLineTwo(" bit.ly/3EBftyx\n");
+  MenuOption _aboutLineOne("Check my stuff\n", &mainMenu);
+  GreetingOption _aboutLineTwo("bit.ly/3EBftyx\n");
   aboutLineOne = _aboutLineOne;
   aboutLineTwo = _aboutLineTwo;
   grOptsAb.push_back(&aboutLineOne); grOptsAb.push_back(&aboutLineTwo);
   Menu _aboutMenu(&grOptsAb, &lcd, false);
   aboutMenu = _aboutMenu;
 
-  MenuOption _playOption(" Play", &playStats), _settingsOption("Settings\n", &optionsMenu), _aboutOption(" About", &aboutMenu), _highScoreOption("Scores\n", &highScoreMenu);
+  SystemOption _contrastOption("Con.", contrastPin, contrast, 10, false), _brightOption("Brg.", brightnessPin, brightness, 20, true);
+  GameOption _diffOption("Diff.", &difficulty, difficulty, 1, 3, false);
+  MenuOption _backSetOption("Back\n", &mainMenu);
+  contrastOption = _contrastOption;
+  brightOption = _brightOption;
+  diffOption = _diffOption;
+  backSetOption = _backSetOption;
+  grOptsSt.push_back(&contrastOption); grOptsSt.push_back(&brightOption); grOptsSt.push_back(&diffOption); grOptsSt.push_back(&backSetOption);
+  Menu _settingsMenu(&grOptsSt, &lcd, false);
+  settingsMenu = _settingsMenu;
+
+
+  MenuOption _playOption("Play", &playStats), _settingsOption("Settings\n", &settingsMenu), _aboutOption("About", &aboutMenu), _highScoreOption("Scores\n", &highScoreMenu);
   playOption = _playOption;
   settingsOption = _settingsOption;
   aboutOption = _aboutOption;
@@ -107,7 +129,7 @@ void setup() {
 }
 
 // refine inputs to be used with menus, we don't really care to know its exact value, only whether it's activated positively or not
-// i'll probably write this somewhere else, too, but 1 on x means right (and -1 left), and 1 on y means up (and -1 down)
+// i'll probably write this somewhere else, too, but 1 on x means right (and -1 left), and 1 on y means down (and -1 up)
 int refineInput(int input) {
   if(input > maxThreshold) 
     return 1;

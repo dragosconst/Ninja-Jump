@@ -81,7 +81,7 @@ int Menu::getArduinoLine(int line, char* writeHere) {
         writeHere[i] = rawText[i];
     }
     writeHere[j] = '\0';
-    // Serial.println(rawText);
+    Serial.println(rawText);
     return j - 2;
 }
 
@@ -100,13 +100,13 @@ void Menu::drawMenu() {
 
     if(millis() - this->lastLetterDrawn >= this->drawInterval) {
         this->lcd->setCursor(this->currentPos, this->currentLine);
-        char printChar = lineText[this->currentPos];
+        char printChar = lineText[this->currentPos - 1];
         Serial.println(printChar);
         this->lcd->print(printChar);
         this->currentPos += 1;
         Serial.println(lineSize);
-        if(this->currentPos > lineSize) {
-            this->currentPos = 0;
+        if(this->currentPos > lineSize + 1) {
+            this->currentPos = 1;
             this->currentLine += 1;
             if(this->currentLine == this->firstLineShown + 2) {
                 this->finsihedDrawing = true;
@@ -152,14 +152,25 @@ Point Menu::findCursorPosition() {
                 line += 1;
             }
         }
+        if(col)
+            col += 1;
     }
 }
 
 void Menu::blinkCursor() {
     if(!this->finsihedDrawing || this->greetingMenu)
         return;
+    // stop the animation to show we locked in to this option
+
+
     Point cursorPos = this->findCursorPosition();
     byte lineOnLed = cursorPos.y - this->firstLineShown, colOnLed = cursorPos.x;
+
+    if(this->checkOptionFocused()) {
+        this->lcd->setCursor(colOnLed, lineOnLed);
+        this->lcd->print(">");
+        return;
+    }
 
     if(millis() - Menu::lastCursorBlink >= Menu::cursorBlink) {
         this->lcd->setCursor(colOnLed, lineOnLed);
@@ -199,12 +210,20 @@ bool Menu::checkOptionFocused() {
 }
 
 void Menu::joystickInput(int xVal, int yVal) {
+    // propagate input to option
+    if(this->checkOptionFocused()) {
+        Option* currentOption = (*this->options)[this->optionSelected];
+        currentOption->joystickInput(xVal, yVal, this);
+        return;
+    }
+
     if(xVal) {
         Point cursorPos = this->findCursorPosition();
         byte lineOnLed = cursorPos.y - this->firstLineShown, colOnLed = cursorPos.x;
         this->lcd->setCursor(colOnLed, lineOnLed);
         this->lcd->print(" ");
         Menu::blinkState = LOW;
+        Menu::lastCursorBlink = 0;
     }
 
 
@@ -235,5 +254,34 @@ void Menu::joystickClicked(Menu** currentMenu) {
     }
     else {
         currentOption->focus(currentMenu);
+    }
+}
+
+// use this to change displayed value when changing numerical values on an option, i.e. contrast
+void Menu::updateOptionValue(Option* option) {
+    byte line = 0, col = 1;
+    for(size_t i = 0; i < this->options->size(); ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        crOption->getTextValue(optionText);
+
+        if(crOption == option) {
+            this->lcd->setCursor(col, line); // + 1 for the whitespace before it
+            int len = strlen(optionText);
+            if(optionText[len - 1] == '\n') {
+                optionText[len - 1] = '\0';
+            }
+            this->lcd->print(optionText);
+            return;
+        }
+
+        for(size_t k = 0; optionText[k]; ++k) {
+            col++;
+            if(optionText[k] == '\n') {
+                col = 0;
+                line += 1;
+            }
+        }
+        col++;
     }
 }

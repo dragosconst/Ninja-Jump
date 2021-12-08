@@ -23,7 +23,7 @@ class Menu;
 class Option {
 protected:
     char text[MAX_OPTION_TEXT];
-    bool inFocus = false;
+    bool inFocus;
 public:
     Option() {}
     Option(const char* text);
@@ -32,7 +32,7 @@ public:
     bool isFocused() const { return this->inFocus; }
 
     virtual void focus(Menu** currentMenu) = 0; // focused will execute the action expected when selecting the option
-    virtual void joystickInput(int xVal, int yVal) = 0; // feeds input to the joystick
+    virtual void joystickInput(int xVal, int yVal, Menu* currentMenu) = 0; // feeds input to the joystick
     virtual void unfocus() = 0; // makes sense for value changing menus
     virtual void getTextValue(char* writeHere) = 0;
 };
@@ -46,7 +46,7 @@ public:
     ~MenuOption() { }
 
     void focus(Menu** currentMenu);
-    void joystickInput(int xVal, int yVal) { } // this is just a menu transition, it won't do anything with joystick inputs
+    void joystickInput(int xVal, int yVal, Menu* currentMenu) { } // this is just a menu transition, it won't do anything with joystick inputs
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
 };
@@ -58,13 +58,14 @@ private:
     int currentValue;
     int stepValue;
     int currentStep;
+    bool last;
 public:
     SystemOption() {}
-    SystemOption(const char* text, int pin, int baseValue, int stepValue);
+    SystemOption(const char* text, int pin, int baseValue, int stepValue, bool last);
     ~SystemOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
-    void joystickInput(int xVal, int yVal);
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
 };
@@ -76,13 +77,14 @@ private:
     int currentValue;
     int stepValue;
     int possibleSteps;
+    bool last;
 public:
     GameOption() {}
-    GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps);
+    GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps, bool last);
     ~GameOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
-    void joystickInput(int xVal, int yVal);
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);
     void unfocus() { this->inFocus = false;}
     void getTextValue(char* writeHere);
 };
@@ -96,7 +98,7 @@ public:
     ~DisplayOption() {}
 
     void focus(Menu** currentMenu) {} // these won't ever fire, this class just displays a value
-    void joystickInput(int xVal, int yVal) {} 
+    void joystickInput(int xVal, int yVal, Menu* currentMenu) {} 
     void unfocus() {}
     void getTextValue(char* writeHere);
 };
@@ -108,7 +110,7 @@ public:
     ~GreetingOption() {}
 
     void focus(Menu** currentMenu) {}
-    void joystickInput(int xVal, int yVal) {} 
+    void joystickInput(int xVal, int yVal, Menu* currentMenu) {} 
     void unfocus() {}
     void getTextValue(char* writeHere);
 };
