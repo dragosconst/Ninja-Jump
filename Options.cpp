@@ -1,6 +1,6 @@
 #include "Options.h"
 
-Option::Option(const char* text) {
+Option::Option(OptionType type, const char* text) {
     // text is assumed to be a correct value
     size_t i;
     for(i = 0; text[i]; ++i) {
@@ -8,9 +8,10 @@ Option::Option(const char* text) {
     }
     this->text[i] = '\0';
     this->inFocus = false;
+    this->type = type;
 }
 
-MenuOption::MenuOption(const char* text, Menu* nextMenu) : Option(text), nextMenu(nextMenu) {
+MenuOption::MenuOption(const char* text, Menu* nextMenu) : Option(menuTransition, text), nextMenu(nextMenu) {
 }
 
 void MenuOption::focus(Menu** currentMenu) {
@@ -27,7 +28,7 @@ void MenuOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-SystemOption::SystemOption(const char* text, int pin, int baseValue, int stepValue, bool last) : Option(text), pin(pin),
+SystemOption::SystemOption(const char* text, int pin, int baseValue, int stepValue, bool last) : Option(sysValue, text), pin(pin),
  baseValue(baseValue), stepValue(stepValue), currentStep(5), currentValue(baseValue), last(last) {
 
 }
@@ -70,7 +71,7 @@ void SystemOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-GameOption::GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps, bool last) : Option(text), valAddr(valAddr), baseValue(baseValue),
+GameOption::GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps, bool last) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
 stepValue(stepValue), currentValue(baseValue), possibleSteps(possibleSteps), last(last) { }
 
 void GameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
@@ -105,7 +106,20 @@ void GameOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-DisplayOption::DisplayOption(const char* text, int* value, bool last) : Option(text), value(value), last(last) {}
+long DisplayOption::lastChecked = 0;
+
+DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu) {}
+
+void DisplayOption::checkValue() {
+    if(millis() - DisplayOption::lastChecked >= DisplayOption::checkInterval) {
+        if(this->oldValue != (*this->value)) {
+            this->oldValue = *this->value;
+            Serial.println("helllllllloo");
+            this->currentMenu->updateOptionValue(this);
+        }
+        DisplayOption::lastChecked = millis();
+    }
+}
 
 void DisplayOption::getTextValue(char* writeHere) {
     size_t i = 0;
@@ -113,7 +127,7 @@ void DisplayOption::getTextValue(char* writeHere) {
         writeHere[i] = this->text[i];
     }
     char number[20];
-    itoa(*this->value, number, 10);    
+    itoa((*this->value), number, 10);    
     for(size_t j = 0; number[j]; ++j) {
         writeHere[i++] = number[j];
     }
@@ -122,7 +136,7 @@ void DisplayOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-GreetingOption::GreetingOption(const char* text) : Option(text) {}
+GreetingOption::GreetingOption(const char* text) : Option(greeting, text) {}
 
 void GreetingOption::getTextValue(char* writeHere) {
     size_t i = 0;

@@ -129,8 +129,8 @@ void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
     if(!this->greetingMenu)
         return;
     if(millis() - this->lastLetterDrawn > this->timeDrawn) {
-        this->clear();
-        *currentMenu = nextMenu;
+        Option* currentOption = (*this->options)[this->optionSelected];
+        currentOption->focus(currentMenu);
     }
 }
 
@@ -284,5 +284,17 @@ void Menu::updateOptionValue(Option* option) {
             }
         }
         col++;
+    }
+}
+
+// check if display values have changed
+void Menu::checkDisplayValues() {
+    for(size_t i = 0; i < this->options->size(); ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        if(crOption->getType() != valueDisplay) // arduino can't use downcasting using dynamic cast
+            continue;
+        DisplayOption* d_crOption = (DisplayOption*) crOption;
+        d_crOption->checkValue();
     }
 }

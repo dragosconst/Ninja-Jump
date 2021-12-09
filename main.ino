@@ -113,7 +113,7 @@ void createMenus() {
   Menu _settingsMenu(&grOptsSt, &lcd, false);
   settingsMenu = _settingsMenu;
 
-  DisplayOption _height("Height: ", player.getHeightAddr(), true), _lives("Lives: ", player.getLivesAddr(), false);
+  DisplayOption _height("Height: ", player.getHeightAddr(), true, &playStats), _lives("Lives: ", player.getLivesAddr(), false, &playStats);
   height = _height;
   lives = _lives;
   grOptsPl.push_back(&height); grOptsPl.push_back(&lives);
@@ -268,6 +268,7 @@ void loop() {
   if(currentState == PlayingGame && player.getLives() <= 0) {
     currentState = BrowsingMenus;
     currentMenu->clear();
+    player.clear(3, 10, 2, 14);
     currentMenu = &gameOver;
   }
 
@@ -288,9 +289,6 @@ void loop() {
       player.stopJumping();
     }
     else {
-      Serial.println(millis() - Player::lastJumped);
-      Serial.println(millis());
-      Serial.println(Player::lastJumped);
     }
     previousBtReading = btReading;
 
@@ -307,6 +305,7 @@ void loop() {
 
   world.drawOnMatrix();
   currentMenu->drawMenu();
+  currentMenu->checkDisplayValues();
   currentMenu->blinkCursor();
   if(currentState == PlayingGame) {
     if(millis() - Player::lastFell >= Player::fallInterval) {

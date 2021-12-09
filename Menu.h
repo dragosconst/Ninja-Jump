@@ -49,6 +49,7 @@ public:
     void joystickInput(int xVal, int yVal);
     void joystickClicked(Menu** currentMenu);
     void updateOptionValue(Option* option);
+    void checkDisplayValues();
 
     bool isGreeting() const { return this->greetingMenu; }
 };

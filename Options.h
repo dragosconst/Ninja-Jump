@@ -22,14 +22,16 @@ class Menu;
 // !!!! For an option that's supposed to be the last option on a LCD line, make sure to add \n at the end.
 class Option {
 protected:
+    OptionType type;
     char text[MAX_OPTION_TEXT];
     bool inFocus;
 public:
     Option() {}
-    Option(const char* text);
+    Option(OptionType type, const char* text);
     ~Option() { }
 
     bool isFocused() const { return this->inFocus; }
+    OptionType getType() const { return this->type; }
 
     virtual void focus(Menu** currentMenu) = 0; // focused will execute the action expected when selecting the option
     virtual void joystickInput(int xVal, int yVal, Menu* currentMenu) = 0; // feeds input to the joystick
@@ -92,14 +94,21 @@ public:
 class DisplayOption : public Option {
 private:
     int* value; // using a pointer to the value so we don't have to bother with getters and setters
+    int oldValue;
     bool last;
+    Menu* currentMenu;
+
 public:
+    static const byte checkInterval = 10; // interval at which the value is checked for changes
+    static long lastChecked;
+
     DisplayOption() {}
-    DisplayOption(const char* text, int* value, bool last);
+    DisplayOption(const char* text, int* value, bool last, Menu* currentMenu);
     ~DisplayOption() {}
 
     void focus(Menu** currentMenu) {} // these won't ever fire, this class just displays a value
     void joystickInput(int xVal, int yVal, Menu* currentMenu) {} 
+    void checkValue();
     void unfocus() {}
     void getTextValue(char* writeHere);
 };

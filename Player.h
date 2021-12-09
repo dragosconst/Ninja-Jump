@@ -10,10 +10,12 @@ class Player {
 private:
     int x, y;
     int lx, ly;
-    int lives;
-    int height;
+    int maxY;
     World* world;
     bool jumping;
+    bool passedPlatform; // for restoring platform integrity after jumping through them
+    int lives;
+    int height;
 public:
     static const int moveInterval = 40; // interval at which to move
     static const int moveIntervalInAir = 120;
@@ -38,6 +40,7 @@ public:
     void jump();
     void startJumping() { Serial.println("hallo");Player::lastJumped = millis();this->jumping = true;}
     void stopJumping() { this->jumping = false;}
+    void clear(int lives, int height, int x, int y);
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }
