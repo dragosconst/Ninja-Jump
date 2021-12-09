@@ -235,6 +235,8 @@ void handleJoyInputs() {
     if(millis() - Player::lastMoved >= (player.onStableGround() ? Player::moveInterval : Player::moveIntervalInAir)){
       xVal = refineInput(xVal);
       yVal = refineInput(yVal);
+      if(xVal)
+        xVal *= -1; // seems to be reversed
       player.move(xVal, yVal);
       Player::lastMoved = millis();
     }

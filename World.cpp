@@ -55,7 +55,9 @@ void World::drawOnMatrix() {
 
     for(int i = player->getY() - dec; i <= player->getY() + incr; ++i) {
         for(int j = 0; j < 8; ++j) {
-            this->lc->setLed(0, j, row, this->map[i][j]);
+            int actual_row = 7 - j;
+            int col = row; 
+            this->lc->setLed(0, col, actual_row, this->map[i][j]);
         }
         row += 1;
     }

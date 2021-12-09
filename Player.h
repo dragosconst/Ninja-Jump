@@ -18,7 +18,7 @@ private:
     int height;
 public:
     static const int moveInterval = 80; // interval at which to move
-    static const int moveIntervalInAir = 200;
+    static const int moveIntervalInAir = 140;
     static long lastMoved;
     static const int maxJump = 1000; // maximum amount of time spent jumping
     static const int jumpInterval = 300; // interval at which to move in the air
