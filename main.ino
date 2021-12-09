@@ -8,8 +8,8 @@ enum GameStates {BrowsingMenus, PlayingGame};
 enum Difficulties {Easy = 0, Normal, Hard};
 
 const int dinPin = 12;
-const int clockPin = 8;
-const int loadPin = 10;
+const int clockPin = 13;
+const int loadPin = 11;
 
 const int xPin = A0;
 const int yPin = A1;
@@ -25,13 +25,13 @@ bool btPushed = LOW;
 bool previousBtPush = LOW;
 
 const int contrastPin = 3;
-const int RSPin = 13;
+const int RSPin = 8;
 const int EPin = 9;
 const int D4 = 7;
 const int D5 = 6;
 const int D6 = 4;
 const int D7 = 2;
-const int brightnessPin = 11;
+const int brightnessPin = 10;
 
 int contrast = 60;
 int brightness = 150;
