@@ -19,7 +19,10 @@ void Player::increaseHeight(int amount) {
 
 void Player::move(int xVal, int yVal) {
     if(xVal) {
-        this->world->map[this->y][this->x] = 0;
+        if(!this->passedPlatform)
+            this->world->map[this->y][this->x] = 0;
+        else
+            this->passedPlatform = false;
     }
     if(xVal == 1) {
         if(x < 7 && this->world->map[this->y][this->x + 1] != 1)

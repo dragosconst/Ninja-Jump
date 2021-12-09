@@ -290,11 +290,14 @@ void Menu::updateOptionValue(Option* option) {
 // check if display values have changed
 void Menu::checkDisplayValues() {
     for(size_t i = 0; i < this->options->size(); ++i) {
-        char optionText[MAX_OPTION_TEXT];
         Option* crOption = (*this->options)[i];
         if(crOption->getType() != valueDisplay) // arduino can't use downcasting using dynamic cast
             continue;
         DisplayOption* d_crOption = (DisplayOption*) crOption;
+        char optionText[MAX_OPTION_TEXT];
+        crOption->getTextValue(optionText);
+        // Serial.println(optionText);
+
         d_crOption->checkValue();
     }
 }

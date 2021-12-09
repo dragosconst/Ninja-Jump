@@ -116,6 +116,11 @@ void createMenus() {
   DisplayOption _height("Height: ", player.getHeightAddr(), true, &playStats), _lives("Lives: ", player.getLivesAddr(), false, &playStats);
   height = _height;
   lives = _lives;
+  Serial.println("im here boss");
+  Serial.println((int)player.getHeightAddr());
+  Serial.println(*player.getHeightAddr());
+  Serial.println((int)player.getLivesAddr());
+  Serial.println(*player.getLivesAddr());
   grOptsPl.push_back(&height); grOptsPl.push_back(&lives);
   Menu _playStats(&grOptsPl, &lcd, false);
   playStats = _playStats;

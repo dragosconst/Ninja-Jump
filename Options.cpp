@@ -106,18 +106,16 @@ void GameOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-long DisplayOption::lastChecked = 0;
 
-DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu) {}
+DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu), lastChecked(0) {}
 
 void DisplayOption::checkValue() {
-    if(millis() - DisplayOption::lastChecked >= DisplayOption::checkInterval) {
+    if(millis() - this->lastChecked >= DisplayOption::checkInterval) {
         if(this->oldValue != (*this->value)) {
             this->oldValue = *this->value;
-            Serial.println("helllllllloo");
             this->currentMenu->updateOptionValue(this);
         }
-        DisplayOption::lastChecked = millis();
+        this->lastChecked = millis();
     }
 }
 

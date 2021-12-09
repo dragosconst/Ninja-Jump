@@ -97,11 +97,10 @@ private:
     int oldValue;
     bool last;
     Menu* currentMenu;
-
+    long lastChecked;
 public:
     static const byte checkInterval = 10; // interval at which the value is checked for changes
-    static long lastChecked;
-
+    
     DisplayOption() {}
     DisplayOption(const char* text, int* value, bool last, Menu* currentMenu);
     ~DisplayOption() {}
