@@ -102,8 +102,8 @@ void createMenus() {
   Menu _aboutMenu(&grOptsAb, &lcd, false);
   aboutMenu = _aboutMenu;
 
-  SystemOption _contrastOption("Con.", contrastPin, contrast, 10, false), _brightOption("Brg.", brightnessPin, brightness, 20, true);
-  GameOption _diffOption("Diff.", &difficulty, difficulty, 1, 3, false);
+  SystemOption _contrastOption("Contrast", contrastPin, contrast, 10, true), _brightOption("LCD brg.", brightnessPin, brightness, 20, true);
+  GameOption _diffOption("Difficulty", &difficulty, difficulty, 1, 3, true);
   MenuOption _backSetOption("Back\n", &mainMenu);
   contrastOption = _contrastOption;
   brightOption = _brightOption;

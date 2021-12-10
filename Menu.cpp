@@ -81,7 +81,6 @@ int Menu::getArduinoLine(int line, char* writeHere) {
         writeHere[i] = rawText[i];
     }
     writeHere[j] = '\0';
-    Serial.println(rawText);
     return j - 2;
 }
 
@@ -98,13 +97,11 @@ void Menu::drawMenu() {
         return;
     }
 
-    if(millis() - this->lastLetterDrawn >= this->drawInterval) {
-        this->lcd->setCursor(this->currentPos, this->currentLine);
+    if(millis() - this->lastLetterDrawn >= this->drawInterval || (this->firstLineShown != 0 && this->currentLine == this->firstLineShown)) {
+        this->lcd->setCursor(this->currentPos, this->currentLine - this->firstLineShown);
         char printChar = lineText[this->currentPos - 1];
-        Serial.println(printChar);
         this->lcd->print(printChar);
         this->currentPos += 1;
-        Serial.println(lineSize);
         if(this->currentPos > lineSize + 1) {
             this->currentPos = 1;
             this->currentLine += 1;
@@ -210,15 +207,93 @@ bool Menu::checkOptionFocused() {
     return currentOption->isFocused();
 }
 
+byte Menu::logicalLineLength(byte line) {
+    byte currentLine = 0;
+    byte optionCount = 0;
+    size_t i;
+    for(i = 0; i < this->options->size(); ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        crOption->getTextValue(optionText);
+        if(currentLine == line) {
+            optionCount += 1;
+        }
+        for(size_t j = 0; optionText[j]; ++j) {
+            if(optionText[j] == '\n' && currentLine != line) {
+                currentLine += 1;
+            }
+            else if(optionText[j] == '\n') {
+                return optionCount;
+            }
+        }
+    }
+}
+
+byte Menu::optionLogPosInLine(byte line, Option* option) {
+    byte currentLine = 0;
+    byte optionCount = 0;
+    size_t i;
+    for(i = 0; i < this->options->size(); ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        crOption->getTextValue(optionText);
+        if(currentLine == line) {
+            optionCount += 1;
+            if(crOption == option) {
+                return optionCount;
+            }
+        }
+        for(size_t j = 0; optionText[j]; ++j) {
+            if(optionText[j] == '\n' && currentLine != line) {
+                currentLine += 1;
+            }
+        }
+    }
+}
+
+Option* Menu::getOptionAtLogPos(byte line, byte optPos) {
+    byte currentLine = 0;
+    byte optionCount = 0;
+    size_t i;
+    for(i = 0; i < this->options->size(); ++i) {
+        char optionText[MAX_OPTION_TEXT];
+        Option* crOption = (*this->options)[i];
+        crOption->getTextValue(optionText);
+        if(currentLine == line) {
+            optionCount += 1;
+            if(optionCount == optPos) {
+                return crOption;
+            }
+        }
+        for(size_t j = 0; optionText[j]; ++j) {
+            if(optionText[j] == '\n' && currentLine != line) {
+                currentLine += 1;
+            }
+            else if(optionText[j] == '\n') {
+                return crOption;
+            }
+        }
+    }
+}
+
+byte Menu::getOptionVecPos(Option* option) {
+    for(size_t i = 0; i < this->options->size(); ++i) {
+        Option* currentOption = (*this->options)[i];
+        if(currentOption == option) {
+            return i;
+        }
+    }
+}
+
 void Menu::joystickInput(int xVal, int yVal) {
     // propagate input to option
+    Option* currentOption = (*this->options)[this->optionSelected];
     if(this->checkOptionFocused()) {
-        Option* currentOption = (*this->options)[this->optionSelected];
         currentOption->joystickInput(xVal, yVal, this);
         return;
     }
 
-    if(xVal) {
+    if(xVal || yVal) {
         Point cursorPos = this->findCursorPosition();
         byte lineOnLed = cursorPos.y - this->firstLineShown, colOnLed = cursorPos.x;
         this->lcd->setCursor(colOnLed, lineOnLed);
@@ -245,7 +320,90 @@ void Menu::joystickInput(int xVal, int yVal) {
         }
     }
 
-    // TODO: y movement
+    if(yVal == 1) {
+        Point cursorPos = this->findCursorPosition();
+        byte line = cursorPos.y;
+        byte crPos = this->optionLogPosInLine(line, currentOption);
+        if(line == this->getLastLine() - 1) { // cant go further down than the last option
+            byte nextLineLen = this->logicalLineLength(0);
+            if(crPos > nextLineLen) {
+                crPos = nextLineLen;
+            }
+            Option* newOption = this->getOptionAtLogPos(0, crPos);
+            this->optionSelected = this->getOptionVecPos(newOption);
+            Serial.println(line);
+            Serial.println(crPos);
+            Serial.println(nextLineLen);
+            if(abs(line - 0) >= 2) {
+                this->lcd->clear();
+                this->currentLine = 0;
+                this->firstLineShown = 0;
+                this->currentPos = 1;
+                this->finsihedDrawing = false;
+            }
+        }
+        else {
+            byte nextLineLen = this->logicalLineLength(line + 1);
+            if(crPos > nextLineLen) {
+                crPos = nextLineLen;
+            }
+            Option* newOption = this->getOptionAtLogPos(line + 1, crPos);
+            this->optionSelected = this->getOptionVecPos(newOption);            
+            Serial.println(line);
+            Serial.println(crPos);
+            Serial.println(nextLineLen);
+            if(line + 1 == this->currentLine) {
+                this->lcd->clear();
+                this->firstLineShown = line;
+                this->currentLine = line;
+                this->currentPos = 1;
+                this->finsihedDrawing = false;
+            }
+        }
+    }
+    else if(yVal == -1) {
+        Point cursorPos = this->findCursorPosition();
+        byte line = cursorPos.y;
+        byte crPos = this->optionLogPosInLine(line, currentOption);
+        if(line == 0) { // cant go further down than the last option
+            byte nextLineLen = this->logicalLineLength(this->getLastLine() - 1);
+            if(crPos > nextLineLen) {
+                crPos = nextLineLen;
+            }
+            Option* newOption = this->getOptionAtLogPos(this->getLastLine() - 1, crPos);
+            this->optionSelected = this->getOptionVecPos(newOption);      
+            Serial.println("ma mananca palma stanga");      
+            Serial.println(line);
+            Serial.println(crPos);
+            Serial.println(nextLineLen);
+            Serial.println(this->getLastLine());
+            if(this->getLastLine() - 2 != 0) {
+                this->lcd->clear();
+                this->currentLine = this->getLastLine() - 2;
+                this->firstLineShown = this->getLastLine() - 2;
+                this->finsihedDrawing = false;
+                this->currentPos = 1;
+            }
+        }
+        else {
+            byte nextLineLen = this->logicalLineLength(line - 1);
+            if(crPos > nextLineLen) {
+                crPos = nextLineLen;
+            }
+            Option* newOption = this->getOptionAtLogPos(line - 1, crPos);
+            this->optionSelected = this->getOptionVecPos(newOption);            
+            Serial.println(line);
+            Serial.println(crPos);
+            Serial.println(nextLineLen);
+            if(line - 1 < this->currentLine - 2) {
+                this->lcd->clear();
+                this->firstLineShown = line - 1;
+                this->currentLine = line - 1;
+                this->finsihedDrawing = false;
+                this->currentPos = 1;
+            }
+        }
+    }
 }
 
 void Menu::joystickClicked(Menu** currentMenu) {
