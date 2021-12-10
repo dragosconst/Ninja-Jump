@@ -33,6 +33,7 @@ SystemOption::SystemOption(const char* text, int pin, int baseValue, int current
 
 }
 
+
 /// it's assumed xVal and yVal are either -1, 0 or 1
 void SystemOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
     if(yVal == -1) {
@@ -71,6 +72,53 @@ void SystemOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
+
+LEDOption::LEDOption(const char* text, LedControl* lc, int brightValue, bool last, void (*eepromUpdate)(int)) : Option(ledValue, text), lc(lc),
+brightValue(brightValue), last(last), eepromUpdate(eepromUpdate) { }
+
+void LEDOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
+    if(yVal == -1) {
+        if(this->brightValue == 15)
+            return;
+        this->brightValue += 1;
+        this->updateMatrix();
+        currentMenu->updateOptionValue(this);
+    }
+    else if(yVal == 1) {
+        if(this->brightValue == 0)
+            return;
+        this->brightValue -= 1;
+        this->updateMatrix();
+        currentMenu->updateOptionValue(this);
+    }
+}
+
+void LEDOption::updateMatrix() {
+    this->lc->setIntensity(0, this->brightValue);
+    for(int i = 0; i < 8; ++i) {
+        this->lc->setRow(0, i, B11111111);
+        Serial.println("broski");
+    }
+}
+
+void LEDOption::getTextValue(char* writeHere) {
+    size_t i = 0;
+    for(i = 0; this->text[i]; ++i){
+        writeHere[i] = this->text[i];
+    }
+    char number[20];
+    itoa(this->brightValue, number, 10);
+    for(size_t j = 0; number[j]; ++j) {
+        if(this->brightValue < 10 && j == 0) {
+            writeHere[i++] = ' ';
+        }
+        writeHere[i++] = number[j];
+    }
+    if(this->last)
+        writeHere[i++] = '\n';
+    writeHere[i] = '\0';
+}
+
 GameOption::GameOption(const char* text, int* valAddr, int baseValue, int currentValue, int stepValue, int possibleSteps, bool last, void (*eepromUpdate)(int)) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
 stepValue(stepValue), currentValue(currentValue), possibleSteps(possibleSteps), last(last), eepromUpdate(eepromUpdate) { }
 
@@ -98,7 +146,10 @@ void GameOption::getTextValue(char* writeHere) {
     }
     char number[20];
     itoa(this->currentValue, number, 10);
-    for(size_t j = 0; number[j]; ++j) {
+    for(size_t j = 0; number[j]; ++j) {        
+        if(this->currentValue < 10 && j == 0) {
+            writeHere[i++] = ' ';
+        }
         writeHere[i++] = number[j];
     }
     if(this->last)

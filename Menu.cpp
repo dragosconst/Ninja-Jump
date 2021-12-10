@@ -194,8 +194,6 @@ void Menu::blinkUpDown() {
     
     if(this->firstLineShown == 0 && this->firstLineShown + 2 == this->getLastLine())
         return;
-    Serial.println("huh");
-    Serial.println(this->getLastLine());
 
     if(millis() - Menu::lastUpDownBlink >= Menu::upDownBlink) {
         if(this->firstLineShown != 0) { 

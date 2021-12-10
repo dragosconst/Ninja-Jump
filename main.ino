@@ -71,6 +71,7 @@ MenuOption aboutLineOne;
 GreetingOption aboutLineTwo;
 
 SystemOption contrastOption, brightOption;
+LEDOption ledOption;
 GameOption diffOption; // maybe volume too?
 MenuOption backSetOption;
 
@@ -81,7 +82,7 @@ MenuOption gameOverOption;
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
-Option* grOptsStArr[4];
+Option* grOptsStArr[5];
 Option* grOptsPlArr[2];
 Option* grOptsGoArr[1];
 Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr), grOptsGo(grOptsGoArr);
@@ -104,24 +105,21 @@ void createMenus() {
   aboutMenu = _aboutMenu;
 
   SystemOption _contrastOption("Contrast", contrastPin, baseContrast, RWHelper::readContrast(), 10, true, RWHelper::writeContrast), _brightOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::readLCDBright(), 20, true, RWHelper::writeLCDBright);
+  LEDOption _ledOption("LED brg.", &lc, RWHelper::readLEDBright(), true, RWHelper::writeLEDBright);
   GameOption _diffOption("Difficulty", &difficulty, difficulty, RWHelper::readDiff(), 1, 3, true, RWHelper::writeDiff);
   MenuOption _backSetOption("Back\n", &mainMenu);
   contrastOption = _contrastOption;
   brightOption = _brightOption;
+  ledOption = _ledOption;
   diffOption = _diffOption;
   backSetOption = _backSetOption;
-  grOptsSt.push_back(&contrastOption); grOptsSt.push_back(&brightOption); grOptsSt.push_back(&diffOption); grOptsSt.push_back(&backSetOption);
+  grOptsSt.push_back(&contrastOption); grOptsSt.push_back(&brightOption); grOptsSt.push_back(&ledOption); grOptsSt.push_back(&diffOption); grOptsSt.push_back(&backSetOption);
   Menu _settingsMenu(&grOptsSt, &lcd, false);
   settingsMenu = _settingsMenu;
 
   DisplayOption _height("Height: ", player.getHeightAddr(), true, &playStats), _lives("Lives: ", player.getLivesAddr(), false, &playStats);
   height = _height;
   lives = _lives;
-  Serial.println("im here boss");
-  Serial.println((int)player.getHeightAddr());
-  Serial.println(*player.getHeightAddr());
-  Serial.println((int)player.getLivesAddr());
-  Serial.println(*player.getLivesAddr());
   grOptsPl.push_back(&height); grOptsPl.push_back(&lives);
   Menu _playStats(&grOptsPl, &lcd, false);
   playStats = _playStats;
@@ -177,8 +175,10 @@ void setup() {
   Serial.begin(9600);
   // the zero refers to the MAX7219 number, it is zero for 1 chip
   lc.shutdown(0, false); // turn off power saving, enables display
-  lc.setIntensity(0, matrixBrightness); // sets brightness (0~15 possible values)
+  lc.setIntensity(0, RWHelper::readLEDBright()); // sets brightness (0~15 possible values)
   lc.clearDisplay(0);// clear screen
+  lc.setRow(0, 1, B11111111);
+
   lcd.begin(16, 2);
 
   pinMode(xPin, INPUT);
@@ -193,8 +193,8 @@ void setup() {
   analogWrite(brightnessPin, RWHelper::readLCDBright());
   
   difficulty = RWHelper::readDiff();
-  player = Player(3, 10, 2, 14, &world);
-  world = World(&lc, &player);
+  // player = Player(3, 10, 2, 14, &world);
+  // world = World(&lc, &player);
   createMenus();
   currentState = BrowsingMenus;
 }
@@ -293,62 +293,62 @@ void handleJoyClick() {
 }
 
 void loop() {  
-  if(currentMenu == &playStats && currentState == BrowsingMenus) {
-    currentState = PlayingGame;
-  }
-  else if(currentMenu != &playStats && currentState == PlayingGame) {
-    currentState = BrowsingMenus;
-  } 
+  // if(currentMenu == &playStats && currentState == BrowsingMenus) {
+  //   currentState = PlayingGame;
+  // }
+  // else if(currentMenu != &playStats && currentState == PlayingGame) {
+  //   currentState = BrowsingMenus;
+  // } 
 
-  if(currentState == PlayingGame && player.getLives() <= 0) {
-    currentState = BrowsingMenus;
-    currentMenu->clear();
-    player.clear(3, 10, 2, 14);
-    currentMenu = &gameOver;
-  }
+  // if(currentState == PlayingGame && player.getLives() <= 0) {
+  //   currentState = BrowsingMenus;
+  //   currentMenu->clear();
+  //   player.clear(3, 10, 2, 14);
+  //   currentMenu = &gameOver;
+  // }
 
-  if(currentState == PlayingGame) {
-    btReading = digitalRead(btPin);
-    if(newBtnPress() && !btPushed && player.onStableGround()) {
-      btPushed = HIGH;
-      player.startJumping();
-    }
-    // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
-    //   player.startJumping();
-    // }
-    else if(!newBtnPress() && btPushed && btReading == HIGH) {
-      player.stopJumping();
-      btPushed = LOW;
-    }
-    if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
-      player.stopJumping();
-    }
-    else {
-    }
-    previousBtReading = btReading;
+  // if(currentState == PlayingGame) {
+  //   btReading = digitalRead(btPin);
+  //   if(newBtnPress() && !btPushed && player.onStableGround()) {
+  //     btPushed = HIGH;
+  //     player.startJumping();
+  //   }
+  //   // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
+  //   //   player.startJumping();
+  //   // }
+  //   else if(!newBtnPress() && btPushed && btReading == HIGH) {
+  //     player.stopJumping();
+  //     btPushed = LOW;
+  //   }
+  //   if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
+  //     player.stopJumping();
+  //   }
+  //   else {
+  //   }
+  //   previousBtReading = btReading;
 
-    if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
-      if(millis() - Player::lastMovedJump >= Player::jumpInterval) {
-        player.jump();
-        Player::lastMovedJump = millis();
-      }
-    }
-    else {
-      player.stopJumping();
-    }
-  }
+  //   if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
+  //     if(millis() - Player::lastMovedJump >= Player::jumpInterval) {
+  //       player.jump();
+  //       Player::lastMovedJump = millis();
+  //     }
+  //   }
+  //   else {
+  //     player.stopJumping();
+  //   }
+  // }
 
-  world.drawOnMatrix();
+  // world.drawOnMatrix();
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();
   currentMenu->blinkCursor();
   currentMenu->blinkUpDown();
-  if(currentState == PlayingGame) {
-    if(millis() - Player::lastFell >= Player::fallInterval) {
-      player.fall(); // check if they should fall
-      Player::lastFell = millis();
-    }
-  }
+  // if(currentState == PlayingGame) {
+  //   if(millis() - Player::lastFell >= Player::fallInterval) {
+  //     player.fall(); // check if they should fall
+  //     Player::lastFell = millis();
+  //   }
+  // }
   handleJoyInputs();
   handleJoyClick();
   if(currentMenu->isGreeting()) 

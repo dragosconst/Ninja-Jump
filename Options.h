@@ -5,15 +5,17 @@
 #include "Arduino.h"
 #include <Vector.h>
 #include "LiquidCrystal.h"
+#include <LedControl.h>
 #include "Menu.h"
 
 // a menu option can either be:
 // 1. a menu transition - selecting it will transition to a new menu
 // 2. a system value changer - it will change a system value, like contrast
-// 3. a game value changer - it will change a value related to the game's logic, like difficulty
-// 4. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
-// 5. greeting - might be necessary for game over and welcome screens
-enum OptionType { menuTransition, sysValue, gameValue, valueDisplay, greeting};
+// 3. led matrix brightness - basically a singleton
+// 4. a game value changer - it will change a value related to the game's logic, like difficulty
+// 5. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
+// 6. greeting - might be necessary for game over and welcome screens
+enum OptionType { menuTransition, sysValue, gameValue, ledValue, valueDisplay, greeting};
 
 class Menu;
 
@@ -70,6 +72,25 @@ public:
     void focus(Menu** currentMenu) { this->inFocus = true;}
     void joystickInput(int xVal, int yVal, Menu* currentMenu);
     void unfocus() { this->inFocus = false; this->eepromUpdate(this->currentValue); }
+    void getTextValue(char* writeHere);
+};
+
+class LEDOption : public Option {
+private:
+    LedControl* lc;
+    int brightValue;
+    void (*eepromUpdate)(int);
+    bool last;
+
+    void updateMatrix();
+public:
+    LEDOption() {}
+    LEDOption(const char* text, LedControl* lc, int brightValue, bool last, void (*eepromUpdate)(int));
+    ~LEDOption() {}
+
+    void focus(Menu** currentMenu) { this->inFocus = true; this->updateMatrix(); }
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);
+    void unfocus() { this->inFocus = false; this->eepromUpdate(this->brightValue); this->lc->clearDisplay(0);}
     void getTextValue(char* writeHere);
 };
 
