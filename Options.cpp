@@ -28,8 +28,8 @@ void MenuOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-SystemOption::SystemOption(const char* text, int pin, int baseValue, int stepValue, bool last) : Option(sysValue, text), pin(pin),
- baseValue(baseValue), stepValue(stepValue), currentStep(5), currentValue(baseValue), last(last) {
+SystemOption::SystemOption(const char* text, int pin, int baseValue, int currentValue, int stepValue, bool last, void (*eepromUpdate)(int)) : Option(sysValue, text), pin(pin),
+ baseValue(baseValue), stepValue(stepValue), currentStep(5 - (baseValue - currentValue) / stepValue), currentValue(currentValue), last(last), eepromUpdate(eepromUpdate) {
 
 }
 
@@ -71,8 +71,8 @@ void SystemOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-GameOption::GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps, bool last) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
-stepValue(stepValue), currentValue(baseValue), possibleSteps(possibleSteps), last(last) { }
+GameOption::GameOption(const char* text, int* valAddr, int baseValue, int currentValue, int stepValue, int possibleSteps, bool last, void (*eepromUpdate)(int)) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
+stepValue(stepValue), currentValue(currentValue), possibleSteps(possibleSteps), last(last), eepromUpdate(eepromUpdate) { }
 
 void GameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
     if(yVal == -1) {

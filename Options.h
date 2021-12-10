@@ -61,14 +61,15 @@ private:
     int stepValue;
     int currentStep;
     bool last;
+    void (*eepromUpdate)(int);
 public:
     SystemOption() {}
-    SystemOption(const char* text, int pin, int baseValue, int stepValue, bool last);
+    SystemOption(const char* text, int pin, int baseValue, int currentValue, int stepValue, bool last, void (*eepromUpdate)(int));
     ~SystemOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
     void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus() { this->inFocus = false;}
+    void unfocus() { this->inFocus = false; this->eepromUpdate(this->currentValue); }
     void getTextValue(char* writeHere);
 };
 
@@ -80,14 +81,15 @@ private:
     int stepValue;
     int possibleSteps;
     bool last;
+    void (*eepromUpdate)(int);
 public:
     GameOption() {}
-    GameOption(const char* text, int* valAddr, int baseValue, int stepValue, int possibleSteps, bool last);
+    GameOption(const char* text, int* valAddr, int baseValue, int currentValue, int stepValue, int possibleSteps, bool last, void (*eepromUpdate)(int));
     ~GameOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
     void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus() { this->inFocus = false;}
+    void unfocus() { this->inFocus = false;this->eepromUpdate(this->currentValue);}
     void getTextValue(char* writeHere);
 };
 

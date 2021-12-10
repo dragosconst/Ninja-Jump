@@ -3,13 +3,14 @@
 #include "Menu.h"
 #include "World.h"
 #include "Player.h"
+#include "RWHelper.h"
 
 enum GameStates {BrowsingMenus, PlayingGame};
 enum Difficulties {Easy = 0, Normal, Hard};
 
-const int dinPin = 12;
-const int clockPin = 13;
-const int loadPin = 11;
+const int dinPin = 11;
+const int clockPin = 12;
+const int loadPin = 9;
 
 const int xPin = A0;
 const int yPin = A1;
@@ -26,15 +27,15 @@ bool previousBtPush = LOW;
 
 const int contrastPin = 3;
 const int RSPin = 8;
-const int EPin = 9;
+const int EPin = 13;
 const int D4 = 7;
 const int D5 = 6;
 const int D6 = 4;
 const int D7 = 2;
 const int brightnessPin = 10;
 
-int contrast = 60;
-int brightness = 150;
+int baseContrast = 60;
+int baseLCDBrightness = 150;
 
 const byte matrixSize = 8;
 
@@ -102,8 +103,8 @@ void createMenus() {
   Menu _aboutMenu(&grOptsAb, &lcd, false);
   aboutMenu = _aboutMenu;
 
-  SystemOption _contrastOption("Contrast", contrastPin, contrast, 10, true), _brightOption("LCD brg.", brightnessPin, brightness, 20, true);
-  GameOption _diffOption("Difficulty", &difficulty, difficulty, 1, 3, true);
+  SystemOption _contrastOption("Contrast", contrastPin, baseContrast, RWHelper::readContrast(), 10, true, RWHelper::writeContrast), _brightOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::readLCDBright(), 20, true, RWHelper::writeLCDBright);
+  GameOption _diffOption("Difficulty", &difficulty, difficulty, RWHelper::readDiff(), 1, 3, true, RWHelper::writeDiff);
   MenuOption _backSetOption("Back\n", &mainMenu);
   contrastOption = _contrastOption;
   brightOption = _brightOption;
@@ -188,9 +189,10 @@ void setup() {
 
   pinMode(contrastPin, OUTPUT);
   pinMode(brightnessPin, OUTPUT);  
-  analogWrite(contrastPin, contrast);
-  analogWrite(brightnessPin, brightness);
+  analogWrite(contrastPin, RWHelper::readContrast());
+  analogWrite(brightnessPin, RWHelper::readLCDBright());
   
+  difficulty = RWHelper::readDiff();
   player = Player(3, 10, 2, 14, &world);
   world = World(&lc, &player);
   createMenus();
@@ -290,7 +292,7 @@ void handleJoyClick() {
   previousSwReading = swReading;
 }
 
-void loop() {
+void loop() {  
   if(currentMenu == &playStats && currentState == BrowsingMenus) {
     currentState = PlayingGame;
   }
