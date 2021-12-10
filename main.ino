@@ -146,6 +146,32 @@ void createMenus() {
   currentMenu = &greetingsMenu;
 }
 
+// Custom character seem to slow down the LCD by a LOT.
+// byte upArrow[8] = {
+//     B00000,
+//     B00100,
+//     B01110,
+//     B10101,
+//     B00100,
+//     B00100,
+//     B00100,
+//     B00100
+// };
+// byte downArrow[8] = {
+//         B00000,
+//         B00100,
+//         B00100,
+//         B00100,
+//         B00100,
+//         B10101,
+//         B01110,
+//         B00100
+//     };
+// void createSpecialChars(LiquidCrystal* lcd) {
+//   lcd->createChar(UP_ARROW, upArrow);
+//   lcd->createChar(DOWN_ARROW, downArrow);
+// }
+
 void setup() {
   Serial.begin(9600);
   // the zero refers to the MAX7219 number, it is zero for 1 chip
@@ -314,6 +340,7 @@ void loop() {
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();
   currentMenu->blinkCursor();
+  currentMenu->blinkUpDown();
   if(currentState == PlayingGame) {
     if(millis() - Player::lastFell >= Player::fallInterval) {
       player.fall(); // check if they should fall

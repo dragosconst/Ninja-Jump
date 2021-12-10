@@ -49,6 +49,10 @@ public:
     static long lastCursorBlink; // we don't really need to store this for each menu
     static bool blinkState;
 
+    static const int upDownBlink; // interval at which the up and down indicators blink
+    static long lastUpDownBlink;
+    static bool upDownState;
+
     Menu();
     Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0);
     Menu(const Menu& other);
@@ -58,6 +62,7 @@ public:
     void drawMenu();
     void clear();
     void blinkCursor();
+    void blinkUpDown();
     void killSelf(Menu** currentMenu, Menu* nextMenu);
     void joystickInput(int xVal, int yVal);
     void joystickClicked(Menu** currentMenu);

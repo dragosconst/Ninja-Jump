@@ -5,6 +5,10 @@ const int Menu::cursorBlink = 500;
 const byte Menu::drawInterval = 40;
 long Menu::lastCursorBlink = 0;
 bool Menu::blinkState = LOW;
+const int Menu::upDownBlink = 500;
+long Menu::lastUpDownBlink = 0;
+bool Menu::upDownState = LOW;
+
 
 Menu::Menu() {
     this->finsihedDrawing = false;
@@ -181,6 +185,37 @@ void Menu::blinkCursor() {
             Menu::blinkState = LOW;
         }
         Menu::lastCursorBlink = millis();
+    }
+}
+
+void Menu::blinkUpDown() {
+    if(!this->finsihedDrawing || this->greetingMenu)
+        return;
+    
+    if(this->firstLineShown == 0 && this->firstLineShown + 2 == this->getLastLine())
+        return;
+    Serial.println("huh");
+    Serial.println(this->getLastLine());
+
+    if(millis() - Menu::lastUpDownBlink >= Menu::upDownBlink) {
+        if(this->firstLineShown != 0) { 
+            this->lcd->setCursor(14, 0);
+            if(!Menu::upDownState)
+                this->lcd->print("^");
+            else
+                this->lcd->print(" ");
+        }
+        if(this->firstLineShown + 2 != this->getLastLine()) {
+            this->lcd->setCursor(14, 1);
+            if(!Menu::upDownState) {
+                this->lcd->print("v");
+            }
+            else {
+                this->lcd->print(" ");
+            }
+        }
+        Menu::upDownState = !Menu::upDownState;
+        Menu::lastUpDownBlink = millis();
     }
 }
 
@@ -425,7 +460,7 @@ void Menu::updateOptionValue(Option* option) {
         crOption->getTextValue(optionText);
 
         if(crOption == option) {
-            this->lcd->setCursor(col, line); // + 1 for the whitespace before it
+            this->lcd->setCursor(col, line - this->firstLineShown); // + 1 for the whitespace before it
             int len = strlen(optionText);
             if(optionText[len - 1] == '\n') {
                 optionText[len - 1] = '\0';
