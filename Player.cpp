@@ -20,23 +20,23 @@ void Player::increaseHeight(int amount) {
 void Player::move(int xVal, int yVal) {
     if(xVal) {
         if(!this->passedPlatform)
-            this->world->map[this->y][this->x] = 0;
+            this->world->map[Pos(this->y, this->x)] = 0;
         else
             this->passedPlatform = false;
     }
     if(xVal == 1) {
-        if(x < 7 && this->world->map[this->y][this->x + 1] != 1)
+        if(x < 7 && !this->world->map[Pos(this->y, this->x + 1)].check())
             this->x += 1;
-        this->world->map[this->y][this->x] = 1;
+        this->world->map[Pos(this->y, this->x)] = 1;
     }
     else if(xVal == -1) {
-        if(x > 0 && this->world->map[this->y][this->x - 1] != 1)
+        if(x > 0 && !this->world->map[Pos(this->y, this->x - 1)].check())
             this->x -= 1;
-        this->world->map[this->y][this->x] = 1;
+        this->world->map[Pos(this->y, this->x)] = 1;
     }
 }
 
-bool Player::onStableGround() const { if(y == 15) return false; return this->world->map[y + 1][x];}
+bool Player::onStableGround() const { if(y == 15) return false; return this->world->map[Pos(y + 1, x)].check();}
 
 void Player::fall() {
     if(this->onStableGround())
@@ -44,7 +44,7 @@ void Player::fall() {
     if(this->isJumping())
         return;
     if(!this->passedPlatform)
-        this->world->map[this->y][this->x] = 0;
+        this->world->map[Pos(this->y, this->x)] = 0;
     else
         this->passedPlatform = false;
     this->y += 1;
@@ -53,14 +53,14 @@ void Player::fall() {
         this->x = this->lx;
         this->y = this->ly;
     }
-    this->world->map[this->y][this->x] = 1;
+    this->world->map[Pos(this->y, this->x)] = 1;
 }
 
 void Player::jump() {
     if(this->y == 0)
         return;
     if(!this->passedPlatform)
-        this->world->map[this->y][this->x] = 0;
+        this->world->map[Pos(this->y, this->x)] = 0;
     else
         this->passedPlatform = false;
     this->y -= 1;
@@ -68,9 +68,9 @@ void Player::jump() {
         this->maxY = this->y;
         this->height += 10;
     }
-    if(this->world->map[this->y][this->x] == 1)
+    if(this->world->map[Pos(this->y, this->x)].check())
         this->passedPlatform = true;
-    this->world->map[this->y][this->x] = 1;
+    this->world->map[Pos(this->y, this->x)] = 1;
 }
 
 // used to reset player after game over screen

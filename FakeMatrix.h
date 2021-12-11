@@ -35,16 +35,17 @@ public:
  */
 class FakeMatrix {
 private:
-    int numRows, numCols;
+    byte numRows, numCols;
     byte* matrix;
 public:
 
     // numCols is supposed to be the number of byte columns - i.e. the "logical" matrix has 8 * numCols columns
     FakeMatrix() {}
-    FakeMatrix(int numRows, int numCols);
+    FakeMatrix(byte numRows, byte numCols);
     FakeMatrix(const FakeMatrix& other);
     ~FakeMatrix();
 
+    void setByte(const Pos& pos, const byte& b);
     FakeBit operator[](const Pos& pos);
 };
 

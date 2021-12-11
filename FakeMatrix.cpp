@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "FakeMatrix.h"
 
-FakeBit::FakeBit(byte* addr,byte bit) : addr(addr), bitPos(bitPos) {}
+FakeBit::FakeBit(byte* addr,byte bitPos) : addr(addr), bitPos(bitPos) {}
 
 FakeBit& FakeBit::operator=(const byte other) {
     if(other != 1 && other)
@@ -29,7 +29,7 @@ FakeBit& FakeBit::operator=(const FakeBit& other) {
     return *this;
 }
 
-FakeMatrix::FakeMatrix(int numRows, int numCols) : numRows(numRows), numCols(numCols) {
+FakeMatrix::FakeMatrix(byte numRows, byte numCols) : numRows(numRows), numCols(numCols) {
     this->matrix = (byte*)malloc(numRows * numCols * sizeof(byte));
 }
 
@@ -41,6 +41,12 @@ FakeMatrix::FakeMatrix(const FakeMatrix& other) {
 
 FakeMatrix::~FakeMatrix() {
     free(this->matrix);
+}
+
+void FakeMatrix::setByte(const Pos& pos, const byte& b) {
+    int i = pos.i, j = pos.j;
+    int index = i * this->numCols + j / 8;
+    this->matrix[index] = b;
 }
 
 FakeBit FakeMatrix::operator[](const Pos& pos) {

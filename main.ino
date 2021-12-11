@@ -193,8 +193,8 @@ void setup() {
   analogWrite(brightnessPin, RWHelper::readLCDBright());
   
   difficulty = RWHelper::readDiff();
-  // player = Player(3, 10, 2, 14, &world);
-  // world = World(&lc, &player);
+  player = Player(3, 10, 2, 14, &world);
+  world = World(&lc, &player);
   createMenus();
   currentState = BrowsingMenus;
 }
@@ -293,62 +293,62 @@ void handleJoyClick() {
 }
 
 void loop() {  
-  // if(currentMenu == &playStats && currentState == BrowsingMenus) {
-  //   currentState = PlayingGame;
-  // }
-  // else if(currentMenu != &playStats && currentState == PlayingGame) {
-  //   currentState = BrowsingMenus;
-  // } 
+  if(currentMenu == &playStats && currentState == BrowsingMenus) {
+    currentState = PlayingGame;
+  }
+  else if(currentMenu != &playStats && currentState == PlayingGame) {
+    currentState = BrowsingMenus;
+  } 
 
-  // if(currentState == PlayingGame && player.getLives() <= 0) {
-  //   currentState = BrowsingMenus;
-  //   currentMenu->clear();
-  //   player.clear(3, 10, 2, 14);
-  //   currentMenu = &gameOver;
-  // }
+  if(currentState == PlayingGame && player.getLives() <= 0) {
+    currentState = BrowsingMenus;
+    currentMenu->clear();
+    player.clear(3, 10, 2, 14);
+    currentMenu = &gameOver;
+  }
 
-  // if(currentState == PlayingGame) {
-  //   btReading = digitalRead(btPin);
-  //   if(newBtnPress() && !btPushed && player.onStableGround()) {
-  //     btPushed = HIGH;
-  //     player.startJumping();
-  //   }
-  //   // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
-  //   //   player.startJumping();
-  //   // }
-  //   else if(!newBtnPress() && btPushed && btReading == HIGH) {
-  //     player.stopJumping();
-  //     btPushed = LOW;
-  //   }
-  //   if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
-  //     player.stopJumping();
-  //   }
-  //   else {
-  //   }
-  //   previousBtReading = btReading;
+  if(currentState == PlayingGame) {
+    btReading = digitalRead(btPin);
+    if(newBtnPress() && !btPushed && player.onStableGround()) {
+      btPushed = HIGH;
+      player.startJumping();
+    }
+    // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
+    //   player.startJumping();
+    // }
+    else if(!newBtnPress() && btPushed && btReading == HIGH) {
+      player.stopJumping();
+      btPushed = LOW;
+    }
+    if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
+      player.stopJumping();
+    }
+    else {
+    }
+    previousBtReading = btReading;
 
-  //   if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
-  //     if(millis() - Player::lastMovedJump >= Player::jumpInterval) {
-  //       player.jump();
-  //       Player::lastMovedJump = millis();
-  //     }
-  //   }
-  //   else {
-  //     player.stopJumping();
-  //   }
-  // }
+    if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
+      if(millis() - Player::lastMovedJump >= Player::jumpInterval) {
+        player.jump();
+        Player::lastMovedJump = millis();
+      }
+    }
+    else {
+      player.stopJumping();
+    }
+  }
 
-  // world.drawOnMatrix();
+  world.drawOnMatrix();
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();
   currentMenu->blinkCursor();
   currentMenu->blinkUpDown();
-  // if(currentState == PlayingGame) {
-  //   if(millis() - Player::lastFell >= Player::fallInterval) {
-  //     player.fall(); // check if they should fall
-  //     Player::lastFell = millis();
-  //   }
-  // }
+  if(currentState == PlayingGame) {
+    if(millis() - Player::lastFell >= Player::fallInterval) {
+      player.fall(); // check if they should fall
+      Player::lastFell = millis();
+    }
+  }
   handleJoyInputs();
   handleJoyClick();
   if(currentMenu->isGreeting()) 
