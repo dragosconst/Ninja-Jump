@@ -197,14 +197,14 @@ void Menu::blinkUpDown() {
 
     if(millis() - Menu::lastUpDownBlink >= Menu::upDownBlink) {
         if(this->firstLineShown != 0) { 
-            this->lcd->setCursor(14, 0);
+            this->lcd->setCursor(15, 0);
             if(!Menu::upDownState)
                 this->lcd->print("^");
             else
                 this->lcd->print(" ");
         }
         if(this->firstLineShown + 2 != this->getLastLine()) {
-            this->lcd->setCursor(14, 1);
+            this->lcd->setCursor(15, 1);
             if(!Menu::upDownState) {
                 this->lcd->print("v");
             }
