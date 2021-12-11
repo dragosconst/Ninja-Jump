@@ -15,7 +15,7 @@ private:
     LedControl* lc;
     Player* player;
 
-    static const byte numRows = 16, numCols = 8;
+    static const byte numRows, numCols;
 public:
     World();
     World(LedControl* lc, Player* player);

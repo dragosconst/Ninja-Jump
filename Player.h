@@ -17,12 +17,12 @@ private:
     int lives;
     int height;
 public:
-    static const int moveInterval = 80; // interval at which to move
-    static const int moveIntervalInAir = 140;
+    static const int moveInterval; // interval at which to move
+    static const int moveIntervalInAir;
     static long lastMoved;
-    static const int maxJump = 1000; // maximum amount of time spent jumping
-    static const int jumpInterval = 300; // interval at which to move in the air
-    static const int fallInterval = 200;
+    static const int maxJump; // maximum amount of time spent jumping
+    static const int jumpInterval; // interval at which to move in the air
+    static const int fallInterval;
     static long lastJumped;
     static long lastMovedJump;
     static long lastFell;

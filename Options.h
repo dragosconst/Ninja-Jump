@@ -11,11 +11,12 @@
 // a menu option can either be:
 // 1. a menu transition - selecting it will transition to a new menu
 // 2. a system value changer - it will change a system value, like contrast
-// 3. led matrix brightness - basically a singleton
+// 3. led matrix brightness - basically a singleton, controls the led brightness
 // 4. a game value changer - it will change a value related to the game's logic, like difficulty
-// 5. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
-// 6. greeting - might be necessary for game over and welcome screens
-enum OptionType { menuTransition, sysValue, gameValue, ledValue, valueDisplay, greeting};
+// 5. naming option for high scores 
+// 6. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
+// 7. greeting - might be necessary for game over and welcome screens
+enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting};
 
 class Menu;
 
@@ -30,7 +31,7 @@ protected:
 public:
     Option() {}
     Option(OptionType type, const char* text);
-    ~Option() { }
+    virtual ~Option() { }
 
     bool isFocused() const { return this->inFocus; }
     OptionType getType() const { return this->type; }

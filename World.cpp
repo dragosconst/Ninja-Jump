@@ -1,6 +1,9 @@
 #include "Arduino.h"
 #include "World.h"
 
+const byte World::numRows = 16;
+const byte World::numCols = 8;
+
 World::World() {
     // byte worldMap[16][8] = {
     //     {0, 1, 1, 1, 0, 0, 0, 0},

@@ -12,11 +12,11 @@
  */
 class RWHelper {
 private:
-    static const byte contrastAddr = 0;
-    static const byte LCDbrightAddr = 1;
-    static const byte LEDbrightAddr = 2;
-    static const byte diffAddr = 3;
-    static const byte highScoreNumAddr = 4; // from 4 onwards the highscores will be stored
+    static const byte contrastAddr;
+    static const byte LCDbrightAddr;
+    static const byte LEDbrightAddr;
+    static const byte diffAddr;
+    static const byte highScoreNumAddr; // from 4 onwards the highscores will be stored
 public:
     static void clear(); // !!!!! use this as rarely as possible, since it performs a total of 9 (at the moment) writes, which is a lot for arduino
     static void writeContrast(int value);

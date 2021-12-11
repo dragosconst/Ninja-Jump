@@ -158,6 +158,8 @@ void GameOption::getTextValue(char* writeHere) {
 }
 
 
+const char* NameOption::alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
+
 DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu), lastChecked(0) {}
 
 void DisplayOption::checkValue() {

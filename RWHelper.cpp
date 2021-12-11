@@ -1,6 +1,12 @@
 #include "Arduino.h"
 #include "RWHelper.h"
 
+const byte RWHelper::contrastAddr = 0;
+const byte RWHelper::LCDbrightAddr = 1;
+const byte RWHelper::LEDbrightAddr = 2;
+const byte RWHelper::diffAddr = 3;
+const byte RWHelper::highScoreNumAddr = 4; // from 4 onwards the highscores will be stored
+
 void RWHelper::clear() {
     for(int i = 0; i < 10; ++i) {
         EEPROM.update(i, 0);
