@@ -19,6 +19,8 @@ private:
 public:
     World();
     World(LedControl* lc, Player* player);
+    World(const World& other);
+    World& operator=(const World& other);
     ~World() {}
 
     void drawOnMatrix();

@@ -7,10 +7,10 @@ const int Player::maxJump = 1000; // maximum amount of time spent jumping
 const int Player::jumpInterval = 300; // interval at which to move in the air
 const int Player::fallInterval = 200;
 
-long Player::lastMoved = 0;
-long Player::lastJumped = 0;
-long Player::lastMovedJump = 0;
-long Player::lastFell = 0;
+unsigned long Player::lastMoved = 0;
+unsigned long Player::lastJumped = 0;
+unsigned long Player::lastMovedJump = 0;
+unsigned long Player::lastFell = 0;
 
 Player::Player(int lives, int height, int x, int y, World* world) : lives(lives), height(height), x(x), y(y), lx(x), ly(y), world(world), jumping(false)
 , passedPlatform(false), maxY(10000) { }

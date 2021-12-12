@@ -5,45 +5,45 @@ const byte World::numRows = 16;
 const byte World::numCols = 8;
 
 World::World() {
-    // byte worldMap[16][8] = {
-    //     {0, 1, 1, 1, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 1, 1, 1, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 1, 1, 0, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 1, 1, 1, 0},
-    //     {0, 1, 1, 1, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 1, 1, 1, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 0, 0, 0, 0, 0, 0, 0},
-    //     {0, 1, 1, 1, 1, 1, 0, 0}
+    // // byte worldMap[16][8] = {
+    // //     {0, 1, 1, 1, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 1, 1, 1, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 1, 1, 0, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 1, 1, 1, 0},
+    // //     {0, 1, 1, 1, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 1, 1, 1, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 0, 0, 0, 0, 0, 0, 0},
+    // //     {0, 1, 1, 1, 1, 1, 0, 0}
+    // // };
+    // byte worldMap[16] = {
+    //     B00000000,
+    //     B00000000,
+    //     B01110000,
+    //     B00000000,
+    //     B00000000,
+    //     B00001110,
+    //     B00000000,
+    //     B01100000,
+    //     B00000000,
+    //     B00001110,
+    //     B01110000,
+    //     B00000000,
+    //     B00001110,
+    //     B00000000,
+    //     B00000000,
+    //     B01111100
     // };
-    byte worldMap[16] = {
-        B00000000,
-        B00000000,
-        B01110000,
-        B00000000,
-        B00000000,
-        B00001110,
-        B00000000,
-        B01100000,
-        B00000000,
-        B00001110,
-        B01110000,
-        B00000000,
-        B00001110,
-        B00000000,
-        B00000000,
-        B01111100
-    };
-    // memcpy(this->map, worldMap, 16*8*sizeof(byte));
-    this->map = FakeMatrix(World::numRows, World::numCols / 8);
-    for(int i = 0; i < 16; ++i) {
-        this->map.setByte(Pos(i, 0), worldMap[i]);
-    }
+    // // memcpy(this->map, worldMap, 16*8*sizeof(byte));
+    // this->map = FakeMatrix(World::numRows, World::numCols / 8);
+    // for(int i = 0; i < 16; ++i) {
+    //     this->map.setByte(Pos(i, 0), worldMap[i]);
+    // }
 }
 
 World::World(LedControl* lc, Player* player) : lc(lc), player(player) {
@@ -70,13 +70,22 @@ World::World(LedControl* lc, Player* player) : lc(lc), player(player) {
     for(int i = 0; i < 16; ++i) {
         this->map.setByte(Pos(i, 0), worldMap[i]);
         if(this->map[Pos(i, 1)].check()) {
-            Serial.println("dj nichifor solitaru");
         }
         else {
-            Serial.println(worldMap[i] & (1 << (7 - (1 % 8))));
-            Serial.println(this->map[Pos(i, 1)].check());
         }
     }
+}
+
+World& World::operator=(const World& other) {
+    this->lc = other.lc;
+    this->player = other.player;
+    this->map = other.map;
+    return *this;
+}
+World::World(const World& other) {
+    this->lc = other.lc;
+    this->player = other.player;
+    this->map = other.map;
 }
 
 void World::drawOnMatrix() {

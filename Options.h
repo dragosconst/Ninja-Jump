@@ -13,7 +13,7 @@
 // 2. a system value changer - it will change a system value, like contrast
 // 3. led matrix brightness - basically a singleton, controls the led brightness
 // 4. a game value changer - it will change a value related to the game's logic, like difficulty
-// 5. naming option for high scores 
+// 5. naming option for high scores - names will have only 3 characters for EEPROM's sake -> could modify in the future
 // 6. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
 // 7. greeting - might be necessary for game over and welcome screens
 enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting};
@@ -44,10 +44,12 @@ public:
 
 class MenuOption : public Option {
 private:
-    Menu* nextMenu;
+    Menu* (*createMenu)(void);
 public:
     MenuOption() {}
-    MenuOption(const char* text, Menu* nextMenu);
+    MenuOption(const char* text, Menu* (*createMenu)(void));
+    MenuOption(const MenuOption& other);
+    MenuOption& operator=(const MenuOption& other);
     ~MenuOption() { }
 
     void focus(Menu** currentMenu);
@@ -58,16 +60,15 @@ public:
 
 class SystemOption : public Option {
 private:
-    int pin;
-    int baseValue;
-    int currentValue;
-    int stepValue;
-    int currentStep;
+    byte pin;
+    byte baseValue;
+    byte currentValue;
+    byte stepValue;
     bool last;
-    void (*eepromUpdate)(int);
+    void (*eepromUpdate)(byte);
 public:
     SystemOption() {}
-    SystemOption(const char* text, int pin, int baseValue, int currentValue, int stepValue, bool last, void (*eepromUpdate)(int));
+    SystemOption(const char* text, byte pin, byte baseValue, byte currentValue, byte stepValue, bool last, void (*eepromUpdate)(byte));
     ~SystemOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
@@ -79,14 +80,14 @@ public:
 class LEDOption : public Option {
 private:
     LedControl* lc;
-    int brightValue;
-    void (*eepromUpdate)(int);
+    byte brightValue;
+    void (*eepromUpdate)(byte);
     bool last;
 
     void updateMatrix();
 public:
     LEDOption() {}
-    LEDOption(const char* text, LedControl* lc, int brightValue, bool last, void (*eepromUpdate)(int));
+    LEDOption(const char* text, LedControl* lc, byte brightValue, bool last, void (*eepromUpdate)(byte));
     ~LEDOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true; this->updateMatrix(); }
@@ -98,15 +99,15 @@ public:
 class GameOption : public Option {
 private:
     int* valAddr; // address of the value we want to change
-    int baseValue;
-    int currentValue;
-    int stepValue;
-    int possibleSteps;
+    byte baseValue;
+    byte currentValue;
+    byte stepValue;
+    byte possibleSteps;
     bool last;
-    void (*eepromUpdate)(int);
+    void (*eepromUpdate)(byte);
 public:
     GameOption() {}
-    GameOption(const char* text, int* valAddr, int baseValue, int currentValue, int stepValue, int possibleSteps, bool last, void (*eepromUpdate)(int));
+    GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last, void (*eepromUpdate)(byte));
     ~GameOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
@@ -115,13 +116,33 @@ public:
     void getTextValue(char* writeHere);
 };
 
+class NameOption : public Option {
+private:
+    static const char alphabet[62];
+    int score;
+    char name[3];
+    byte vals[3];
+    void (*eepromUpdate)(int, char*);
+    byte crIndex;
+    byte crChar;
+public:
+    NameOption() {}
+    NameOption(const char* text, int score, const char* name, void (*eepromUpdate)(int, char*));
+    ~NameOption() {}
+
+    void focus(Menu** currentMenu);
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);
+    void unfocus();
+    void getTextValue(char* writeHere);
+};
+
 class DisplayOption : public Option {
 private:
     int* value; // using a pointer to the value so we don't have to bother with getters and setters
-    int oldValue;
+    byte oldValue;
     bool last;
     Menu* currentMenu;
-    long lastChecked;
+    static long lastChecked;
 public:
     static const byte checkInterval = 10; // interval at which the value is checked for changes
     

@@ -26,10 +26,10 @@ class Menu {
 private:
     Vector<Option*>* options;
     byte optionSelected;
-    long lastLetterDrawn = 0; // time at which the last letter was drawn
-    byte currentLine = 0; // current line being drawn
-    byte currentPos = 1; // current position on current line -> this is actual array position, not logical position, i.e. which option this one is in its respective line
-    byte firstLineShown = 0; // for menus that have more than just two lines
+    unsigned long lastLetterDrawn; // time at which the last letter was drawn
+    byte currentLine; // current line being drawn
+    byte currentPos; // current position on current line -> this is actual array position, not logical position, i.e. which option this one is in its respective line
+    byte firstLineShown; // for menus that have more than just two lines
     bool greetingMenu;
     LiquidCrystal* lcd;
     bool finsihedDrawing;
@@ -46,28 +46,30 @@ private:
 public:
     static const int cursorBlink; // interval at which the cursor blinks
     static const byte drawInterval; // interval at which to draw the menu
-    static long lastCursorBlink; // we don't really need to store this for each menu
+    static unsigned long lastCursorBlink; // we don't really need to store this for each menu
     static bool blinkState;
 
     static const int upDownBlink; // interval at which the up and down indicators blink
-    static long lastUpDownBlink;
+    static unsigned long lastUpDownBlink;
     static bool upDownState;
 
     Menu();
     Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0);
     Menu(const Menu& other);
     Menu& operator=(const Menu& other);
-    ~Menu() { }
+    ~Menu() {}
 
     void drawMenu();
     void clear();
     void blinkCursor();
     void blinkUpDown();
-    void killSelf(Menu** currentMenu, Menu* nextMenu);
+    void killSelf(Menu** currentMenu);
     void joystickInput(int xVal, int yVal);
     void joystickClicked(Menu** currentMenu);
     void updateOptionValue(Option* option);
     void checkDisplayValues();
+    void freeOptions();
+    void printValues();
 
     bool isGreeting() const { return this->greetingMenu; }
 };

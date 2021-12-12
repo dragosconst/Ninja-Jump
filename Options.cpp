@@ -11,25 +11,66 @@ Option::Option(OptionType type, const char* text) {
     this->type = type;
 }
 
-MenuOption::MenuOption(const char* text, Menu* nextMenu) : Option(menuTransition, text), nextMenu(nextMenu) {
+MenuOption::MenuOption(const char* text, Menu* (*createMenu)(void)) : Option(menuTransition, text),
+createMenu(createMenu) {
+}
+
+MenuOption::MenuOption(const MenuOption& other) {
+    this->type = other.type;
+    int i;
+    for(i = 0; other.text[i]; ++i) {
+        this->text[i] = other.text[i];
+    }
+    this->text[i] = '\0';
+    this->createMenu = other.createMenu;
+}
+
+MenuOption& MenuOption::operator=(const MenuOption& other) {
+    this->type = other.type;
+    int i;
+    for(i = 0; other.text[i]; ++i) {
+        this->text[i] = other.text[i];
+    }
+    this->text[i] = '\0';
+    // Serial.println(text);
+    this->createMenu = other.createMenu;
+    return *this;
 }
 
 void MenuOption::focus(Menu** currentMenu) {
-    (*currentMenu)->clear(); 
-    *currentMenu = nextMenu; 
-    this->unfocus(); 
+    Menu* oldMenu = *currentMenu;
+    // Serial.println("this is good so far");
+    // delay(300);
+    (*currentMenu)->clear();
+    *currentMenu = this->createMenu();     
+
+    /**
+     * @brief 
+     * So obviously, in a regular environment this would not work. We are essentially freeing this option with the freeOptions call.
+     * However, since Arduino doesn't have an OS and therefore there's no other process running, the free operation will not actually
+     * result in they bytes being changed to anything, so the program keeps on executing them, even if they aren't technically part of the
+     * address space anymore.
+     * This might be unstable if Arduino has illegal memory access errors, but it doesn't seem to have any.
+     */
+    oldMenu->freeOptions();
+    delete oldMenu;
+    // this->unfocus(); 
 }
 
 void MenuOption::getTextValue(char* writeHere) {
+
     size_t i;
     for(i = 0; this->text[i]; ++i){
+        // Serial.println(this->text[i]);
         writeHere[i] = this->text[i];
+        // Serial.println(this->text[i]);
+        // delay(300);
     }
     writeHere[i] = '\0';
 }
 
-SystemOption::SystemOption(const char* text, int pin, int baseValue, int currentValue, int stepValue, bool last, void (*eepromUpdate)(int)) : Option(sysValue, text), pin(pin),
- baseValue(baseValue), stepValue(stepValue), currentStep(5 - (baseValue - currentValue) / stepValue), currentValue(currentValue), last(last), eepromUpdate(eepromUpdate) {
+SystemOption::SystemOption(const char* text, byte pin, byte baseValue, byte currentValue, byte stepValue, bool last, void (*eepromUpdate)(byte)) : Option(sysValue, text), pin(pin),
+ baseValue(baseValue), stepValue(stepValue), currentValue(currentValue), last(last), eepromUpdate(eepromUpdate) {
 
 }
 
@@ -41,7 +82,6 @@ void SystemOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
             return;
         this->currentValue += this->stepValue;
         analogWrite(this->pin, this->currentValue);
-        this->currentStep += 1;
         currentMenu->updateOptionValue(this);
     }
     else if(yVal == 1) {
@@ -49,7 +89,6 @@ void SystemOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
             return;
         this->currentValue -= this->stepValue;
         analogWrite(this->pin, this->currentValue);
-        this->currentStep -= 1;
         currentMenu->updateOptionValue(this);
     }
 }
@@ -60,9 +99,9 @@ void SystemOption::getTextValue(char* writeHere) {
         writeHere[i] = this->text[i];
     }
     char number[20];
-    itoa(this->currentStep, number, 10);
+    itoa(5 - (baseValue - currentValue) / stepValue, number, 10);
     for(size_t j = 0; number[j]; ++j) {
-        if(this->currentStep < 10 && j == 0) {
+        if(5 - (baseValue - currentValue) / stepValue < 10 && j == 0) {
             writeHere[i++] = ' ';
         }
         writeHere[i++] = number[j];
@@ -73,7 +112,7 @@ void SystemOption::getTextValue(char* writeHere) {
 }
 
 
-LEDOption::LEDOption(const char* text, LedControl* lc, int brightValue, bool last, void (*eepromUpdate)(int)) : Option(ledValue, text), lc(lc),
+LEDOption::LEDOption(const char* text, LedControl* lc, byte brightValue, bool last, void (*eepromUpdate)(byte)) : Option(ledValue, text), lc(lc),
 brightValue(brightValue), last(last), eepromUpdate(eepromUpdate) { }
 
 void LEDOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
@@ -97,7 +136,6 @@ void LEDOption::updateMatrix() {
     this->lc->setIntensity(0, this->brightValue);
     for(int i = 0; i < 8; ++i) {
         this->lc->setRow(0, i, B11111111);
-        Serial.println("broski");
     }
 }
 
@@ -119,7 +157,7 @@ void LEDOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-GameOption::GameOption(const char* text, int* valAddr, int baseValue, int currentValue, int stepValue, int possibleSteps, bool last, void (*eepromUpdate)(int)) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
+GameOption::GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last, void (*eepromUpdate)(byte)) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
 stepValue(stepValue), currentValue(currentValue), possibleSteps(possibleSteps), last(last), eepromUpdate(eepromUpdate) { }
 
 void GameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
@@ -158,12 +196,58 @@ void GameOption::getTextValue(char* writeHere) {
 }
 
 
-const char* NameOption::alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
+const char NameOption::alphabet[62] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu), lastChecked(0) {}
+NameOption::NameOption(const char* text, int score, const char* name, void (*eepromUpdate)(int, char*)) : Option(nameOption, text), score(score),
+eepromUpdate(eepromUpdate), crChar(0), crIndex(10) {
+    for(byte j = 0; j < 3; ++j) {
+        this->name[j] = name[j];
+        this->vals[j] = 10;
+    }
+}
+
+void NameOption::focus(Menu** currentMenu) {
+    this->inFocus = true;
+}
+
+void NameOption::unfocus() {
+    if(crChar == 3) {
+        this->inFocus = false;
+        return;
+    }
+    this->vals[crChar] = this->crIndex;
+    this->crIndex = this->vals[++crChar];
+}
+
+void NameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
+    if(yVal == -1) {
+        if(this->crIndex > 0)
+            this->crIndex--;
+    }
+    else if(yVal == 1) {
+        if(this->crIndex < 61)
+            this->crIndex++;
+    }
+}
+
+void NameOption::getTextValue(char* writeHere) {
+    size_t i = 0;
+    for(i = 0; this->text[i]; ++i){
+        writeHere[i] = this->text[i];
+    }
+    for(byte j = 0; j < 3; ++j) {
+        writeHere[i++] = NameOption::alphabet[this->vals[j]];
+    }
+    writeHere[i++] = '\n';
+    writeHere[i] = '\0';
+}
+
+DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu) {}
+
+long DisplayOption::lastChecked = 0;
 
 void DisplayOption::checkValue() {
-    if(millis() - this->lastChecked >= DisplayOption::checkInterval) {
+    if(millis() - DisplayOption::lastChecked >= DisplayOption::checkInterval) {
         if(this->oldValue != (*this->value)) {
             this->oldValue = *this->value;
             this->currentMenu->updateOptionValue(this);

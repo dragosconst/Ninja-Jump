@@ -19,13 +19,13 @@ private:
 public:
     static const int moveInterval; // interval at which to move
     static const int moveIntervalInAir;
-    static long lastMoved;
+    static unsigned long lastMoved;
     static const int maxJump; // maximum amount of time spent jumping
     static const int jumpInterval; // interval at which to move in the air
     static const int fallInterval;
-    static long lastJumped;
-    static long lastMovedJump;
-    static long lastFell;
+    static unsigned long lastJumped;
+    static unsigned long lastMovedJump;
+    static unsigned long lastFell;
 
     Player() {lives = 0; height = 0;}
     Player(int lives, int height, int x, int y, World* world);

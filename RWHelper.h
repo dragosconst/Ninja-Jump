@@ -21,19 +21,19 @@ private:
     static const byte highScoreNumAddr; // from 4 onwards the highscores will be stored
     static const byte charLimit; // limit of chars in a name
 public:
-    static void clear(); // !!!!! use this as rarely as possible, since it performs a total of 9 (at the moment) writes, which is a lot for arduino
-    static void writeContrast(int value);
-    static void writeLCDBright(int value);
-    static void writeLEDBright(int value);
-    static void writeDiff(int value);
-    static void writeHighNum(int value);
+    static void clear();
+    static void writeContrast(byte value);
+    static void writeLCDBright(byte value);
+    static void writeLEDBright(byte value);
+    static void writeDiff(byte value);
+    static void writeHighNum(byte value);
     static void writeHigh(int value, char* name);
 
-    static int readContrast();
-    static int readLCDBright();
-    static int readLEDBright();
-    static int readDiff();
-    static int readHighNum();
+    static byte readContrast();
+    static byte readLCDBright();
+    static byte readLEDBright();
+    static byte readDiff();
+    static byte readHighNum();
     static int readHigh(int which, char* writeHere);
 };
 

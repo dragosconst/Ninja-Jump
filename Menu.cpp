@@ -3,16 +3,20 @@
 
 const int Menu::cursorBlink = 500;
 const byte Menu::drawInterval = 40;
-long Menu::lastCursorBlink = 0;
+unsigned long Menu::lastCursorBlink = 0;
 bool Menu::blinkState = LOW;
 const int Menu::upDownBlink = 500;
-long Menu::lastUpDownBlink = 0;
+unsigned long Menu::lastUpDownBlink = 0;
 bool Menu::upDownState = LOW;
 
 
 Menu::Menu() {
     this->finsihedDrawing = false;
     this->optionSelected = 0;
+    this->lastLetterDrawn = 0;
+    this->currentLine = 0;
+    this->currentPos = 1;
+    this->firstLineShown = 0;
 }
 
 Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0) {
@@ -22,6 +26,10 @@ Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = fal
     this->greetingMenu = greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = timeDrawn;
+    this->lastLetterDrawn = 0;
+    this->currentLine = 0;
+    this->currentPos = 1;
+    this->firstLineShown = 0;
 }
 
 Menu::Menu(const Menu& other) {
@@ -31,6 +39,10 @@ Menu::Menu(const Menu& other) {
     this->greetingMenu = other.greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = other.timeDrawn;
+    this->lastLetterDrawn = 0;
+    this->currentLine = 0;
+    this->currentPos = 1;
+    this->firstLineShown = 0;
 }
 
 Menu& Menu::operator=(const Menu& other) {
@@ -40,6 +52,10 @@ Menu& Menu::operator=(const Menu& other) {
     this->greetingMenu = other.greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = other.timeDrawn;
+    this->lastLetterDrawn = 0;
+    this->currentLine = 0;
+    this->currentPos = 1;
+    this->firstLineShown = 0;
     return *this;
 }
 
@@ -56,17 +72,30 @@ int Menu::getArduinoLine(int line, char* writeHere) {
             }
         }
     }
-
+    // Serial.print("current line is");
+    // Serial.println(currentLine);
+    // Serial.println(this->options->size());
+    // delay(300);
     // now i points to the first word on the corresponding line
     char rawText[MAX_OPTION_TEXT];
     size_t j = 0;
     for(; i < this->options->size(); ++i) {
-        char optionText[MAX_OPTION_TEXT];
+        char optionText[MAX_OPTION_TEXT] = {0};
         Option* crOption = (*this->options)[i];
+        // Serial.print(i);
+        // Serial.println(" vai de viata mea");
+        // Serial.println(sizeof(*crOption));
+        // Serial.println(sizeof(MenuOption));
+        // Serial.println(sizeof(Option));
+        // delay(300);
         crOption->getTextValue(optionText);
+        // Serial.print(i);
+        // Serial.println(" i pana acum");
+        // delay(300);
         bool last = false;
         // Serial.print(i);
         // Serial.println(" i pana acum");
+        // delay(300);
         for(size_t k = 0; optionText[k]; ++k) {
             rawText[j++] = optionText[k];
             if(optionText[k] == '\n') 
@@ -79,6 +108,9 @@ int Menu::getArduinoLine(int line, char* writeHere) {
             break;
     }
     rawText[j] = '\0';
+    // Serial.println(rawText);
+    // Serial.println("raw texr okay");
+    // delay(300);
 
     // maybe add spacing in the future
     for(size_t i = 0; rawText[i]; ++i) {
@@ -90,12 +122,20 @@ int Menu::getArduinoLine(int line, char* writeHere) {
 
 // what draw menu basically does is animate a neat drawing animation and never do anything else afterwise
 void Menu::drawMenu() {
-    // Serial.println(this->finsihedDrawing ? "HIGH" : "LOW");
+    // Serial.println(this->finsihedDrawing);
+    // delay(10);
     if(this->finsihedDrawing)
         return;
     
+    // Serial.println("adjajajdjas");
+    // delay(100);
     char lineText[MAX_OPTION_TEXT];
+    // Serial.println("before arduino get line");
+    // delay(100);
     int lineSize = this->getArduinoLine(this->currentLine, lineText);
+    // Serial.println("line size succesful");
+    // Serial.println(lineSize);
+    // delay(100);
     if(lineSize <= 0) {
         this->finsihedDrawing = true;
         return;
@@ -103,17 +143,24 @@ void Menu::drawMenu() {
 
     if(millis() - this->lastLetterDrawn >= this->drawInterval || (this->firstLineShown != 0 && this->currentLine == this->firstLineShown)) {
         this->lcd->setCursor(this->currentPos, this->currentLine - this->firstLineShown);
+        // Serial.println("cursor succesful");
+        // delay(100);
         char printChar = lineText[this->currentPos - 1];
         this->lcd->print(printChar);
+        // Serial.println((int)this->lcd);
+        // Serial.println(lineText);
+        // Serial.println(printChar);
         this->currentPos += 1;
         if(this->currentPos > lineSize + 1) {
             this->currentPos = 1;
             this->currentLine += 1;
             if(this->currentLine == this->firstLineShown + 2) {
+                // Serial.println("my dude");
                 this->finsihedDrawing = true;
             }
         }
         this->lastLetterDrawn = millis();
+        // Serial.println("derp");
     }
 }
 
@@ -123,14 +170,21 @@ void Menu::clear() {
     this->optionSelected = 0;
     this->firstLineShown = 0;
     this->currentLine = 0;
+    this->lastLetterDrawn = 0;
+    this->currentPos = 1;
 }
 
 // for greetings menu, kill itself and transition to the next menu
-void Menu::killSelf(Menu** currentMenu, Menu* nextMenu) {
+void Menu::killSelf(Menu** currentMenu) {
     if(!this->greetingMenu)
         return;
     if(millis() - this->lastLetterDrawn > this->timeDrawn) {
         Option* currentOption = (*this->options)[this->optionSelected];
+        // Serial.println("uhhh hello???");
+        // Serial.println(millis());
+        // Serial.println(this->lastLetterDrawn);
+        // Serial.println(this->timeDrawn);
+        // delay(500);
         currentOption->focus(currentMenu);
     }
 }
@@ -364,9 +418,9 @@ void Menu::joystickInput(int xVal, int yVal) {
             }
             Option* newOption = this->getOptionAtLogPos(0, crPos);
             this->optionSelected = this->getOptionVecPos(newOption);
-            Serial.println(line);
-            Serial.println(crPos);
-            Serial.println(nextLineLen);
+            // Serial.println(line);
+            // Serial.println(crPos);
+            // Serial.println(nextLineLen);
             if(abs(line - 0) >= 2) {
                 this->lcd->clear();
                 this->currentLine = 0;
@@ -382,9 +436,9 @@ void Menu::joystickInput(int xVal, int yVal) {
             }
             Option* newOption = this->getOptionAtLogPos(line + 1, crPos);
             this->optionSelected = this->getOptionVecPos(newOption);            
-            Serial.println(line);
-            Serial.println(crPos);
-            Serial.println(nextLineLen);
+            // Serial.println(line);
+            // Serial.println(crPos);
+            // Serial.println(nextLineLen);
             if(line + 1 == this->currentLine) {
                 this->lcd->clear();
                 this->firstLineShown = line;
@@ -405,11 +459,10 @@ void Menu::joystickInput(int xVal, int yVal) {
             }
             Option* newOption = this->getOptionAtLogPos(this->getLastLine() - 1, crPos);
             this->optionSelected = this->getOptionVecPos(newOption);      
-            Serial.println("ma mananca palma stanga");      
-            Serial.println(line);
-            Serial.println(crPos);
-            Serial.println(nextLineLen);
-            Serial.println(this->getLastLine());
+            // Serial.println(line);
+            // Serial.println(crPos);
+            // Serial.println(nextLineLen);
+            // Serial.println(this->getLastLine());
             if(this->getLastLine() - 2 != 0) {
                 this->lcd->clear();
                 this->currentLine = this->getLastLine() - 2;
@@ -425,9 +478,9 @@ void Menu::joystickInput(int xVal, int yVal) {
             }
             Option* newOption = this->getOptionAtLogPos(line - 1, crPos);
             this->optionSelected = this->getOptionVecPos(newOption);            
-            Serial.println(line);
-            Serial.println(crPos);
-            Serial.println(nextLineLen);
+            // Serial.println(line);
+            // Serial.println(crPos);
+            // Serial.println(nextLineLen);
             if(line - 1 < this->currentLine - 2) {
                 this->lcd->clear();
                 this->firstLineShown = line - 1;
@@ -491,4 +544,19 @@ void Menu::checkDisplayValues() {
 
         d_crOption->checkValue();
     }
+}
+
+void Menu::freeOptions() { 
+    for(int i = this->options->size() - 1; i >= 0; --i) {
+        delete ((*this->options)[i]);
+        (*this->options).pop_back();
+    }
+    // free(this->options);
+}
+
+void Menu::printValues() {
+    Serial.println("im printing");
+    Serial.println(this->finsihedDrawing);
+    Serial.println("stop printing");
+    // delay(500);
 }

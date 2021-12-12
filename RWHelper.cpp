@@ -2,41 +2,43 @@
 #include "RWHelper.h"
 
 const byte RWHelper::contrastAddr = 0;
-const byte RWHelper::LCDbrightAddr = 1;
-const byte RWHelper::LEDbrightAddr = 2;
-const byte RWHelper::diffAddr = 3;
-const byte RWHelper::highScoreNumAddr = 4; // from 4 onwards the highscores will be stored
+const byte RWHelper::LCDbrightAddr = 1 * sizeof(byte);
+const byte RWHelper::LEDbrightAddr = 2 * sizeof(byte);
+const byte RWHelper::diffAddr = 3 * sizeof(byte);
+const byte RWHelper::highScoreNumAddr = 4 * sizeof(byte); // from 4 onwards the highscores will be stored
 const byte RWHelper::charLimit = 3;
 
 void RWHelper::clear() {
-    for(int i = 0; i < 10; ++i) {
-        EEPROM.put(i, 0);
+    byte highScoreSize = 1 + RWHelper::charLimit;
+    for(int i = 0; i < 5 ; ++i) {
+        EEPROM.put(i * sizeof(byte), 0);
+        EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + 1, 0);
     }
 }
 
-void RWHelper::writeContrast(int value) {
+void RWHelper::writeContrast(byte value) {
     EEPROM.put(RWHelper::contrastAddr, value);
 }
 
-void RWHelper::writeLCDBright(int value) {
+void RWHelper::writeLCDBright(byte value) {
     EEPROM.put(RWHelper::LCDbrightAddr, value);
 }
 
-void RWHelper::writeLEDBright(int value) {
+void RWHelper::writeLEDBright(byte value) {
     EEPROM.put(RWHelper::LEDbrightAddr, value);
 }
 
-void RWHelper::writeDiff(int value) {
+void RWHelper::writeDiff(byte value) {
     EEPROM.put(RWHelper::diffAddr, value);
 }
 
-void RWHelper::writeHighNum(int value) {
+void RWHelper::writeHighNum(byte value) {
     EEPROM.put(RWHelper::highScoreNumAddr, value);
 }
 
 void RWHelper::writeHigh(int value, char* name) {
     byte highScoreSize = 1 + RWHelper::charLimit;
-    int n;
+    byte n;
     EEPROM.get(RWHelper::highScoreNumAddr, n);
     int oldValue = -1;
     char oldName[RWHelper::charLimit];
@@ -65,39 +67,39 @@ void RWHelper::writeHigh(int value, char* name) {
     }
 }
 
-int RWHelper::readContrast() {
-    int retval;
+byte RWHelper::readContrast() {
+    byte retval;
     EEPROM.get(RWHelper::contrastAddr, retval);
     return retval;
 }
 
-int RWHelper::readLCDBright() {
-    int retval;
+byte RWHelper::readLCDBright() {
+    byte retval;
     EEPROM.get(RWHelper::LCDbrightAddr, retval);
     return retval;
 }
 
-int RWHelper::readLEDBright() {
-    int retval;
+byte RWHelper::readLEDBright() {
+    byte retval;
     EEPROM.get(RWHelper::LEDbrightAddr, retval);
     return retval;
 }
 
-int RWHelper::readDiff() {
-    int retval;
+byte RWHelper::readDiff() {
+    byte retval;
     EEPROM.get(RWHelper::diffAddr, retval);
     return retval;
 }
 
-int RWHelper::readHighNum() {
-    int retval;
+byte RWHelper::readHighNum() {
+    byte retval;
     EEPROM.get(RWHelper::highScoreNumAddr, retval);
     return retval;
 }
 
 int RWHelper::readHigh(int which, char* writeHere) {
     int retval;
-    int n;
+    byte n;
     EEPROM.get(RWHelper::highScoreNumAddr, n);
     if(which <= 0 || which > n)
         return -1; // invalid addresses

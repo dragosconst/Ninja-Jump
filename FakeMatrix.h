@@ -58,6 +58,7 @@ public:
     FakeMatrix() {}
     FakeMatrix(byte numRows, byte numCols);
     FakeMatrix(const FakeMatrix& other);
+    FakeMatrix& operator=(const FakeMatrix& other);
     ~FakeMatrix();
 
     void setByte(const Pos& pos, const byte& b);

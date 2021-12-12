@@ -34,8 +34,8 @@ const int D6 = 4;
 const int D7 = 2;
 const int brightnessPin = 10;
 
-int baseContrast = 60;
-int baseLCDBrightness = 150;
+byte baseContrast = 60;
+byte baseLCDBrightness = 150;
 
 const byte matrixSize = 8;
 
@@ -62,87 +62,152 @@ int difficulty = Normal;
 Player player;
 World world;
 
-Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats, gameOver;
-MenuOption welcomeMessage;
+// Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats, gameOver, congrats, enterName;
+// MenuOption welcomeMessage;
 
-MenuOption playOption, settingsOption, aboutOption, highSchoreOption;
+// MenuOption playOption, settingsOption, aboutOption, highSchoreOption;
 
-MenuOption aboutLineOne;
-GreetingOption aboutLineTwo;
+// MenuOption aboutLineOne;
+// GreetingOption aboutLineTwo;
 
-SystemOption contrastOption, brightOption;
-LEDOption ledOption;
-GameOption diffOption; // maybe volume too?
-MenuOption backSetOption;
+// SystemOption contrastOption, brightOption;
+// LEDOption ledOption;
+// GameOption diffOption; // maybe volume too?
+// MenuOption backSetOption; 
 
-DisplayOption height, lives;
+// GreetingOption scores[5], noScores;
+// MenuOption backFromScore;
 
-MenuOption gameOverOption;
+// DisplayOption height, lives;
+
+// MenuOption gameOverOption;
 
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
 Option* grOptsStArr[5];
 Option* grOptsPlArr[2];
+Option* grOptsHsArr[7];
 Option* grOptsGoArr[1];
-Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr), grOptsGo(grOptsGoArr);
+Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr), grOptsGo(grOptsGoArr),
+grOptsHs(grOptsHsArr);
 Menu* currentMenu;
 
-void createMenus() {
+inline Menu* createWelcomeMenu();
+Menu* createMainMenu();
+Menu* createAboutMenu();
+Menu* createScoreMenu();
+Menu* createSettingsMenu();
+Menu* createDisplayMenu();
+Menu* createGameOverMenu();
+
+inline Menu* createWelcomeMenu() { 
+//  volatile int* myint = (int*)malloc(4* sizeof(int));
+    // volatile int* arr3 = (int*)malloc(21 * sizeof(char));
+  // volatile int* arr = (int*)malloc(2*sizeof(int));
+  // volatile int* arrf = (int*)malloc(2*sizeof(float));
+  Menu* menu = new Menu(&grOpts, &lcd, true, 3000);
+  menu->clear();
+//  Serial.println((int)arr2);
+//  Serial.println(NULL);
+// // Serial.println((int)arr3);
+//  Serial.println((int)arr);
+//  Serial.println(sizeof(Menu));
+//  Serial.println((int)arrf);
+//  Serial.println(sizeof(MenuOption));
+//  Serial.println("stuff 3");
   const char* _welcomeText = "   Welcome! \n\0";
-  MenuOption _welcomeMessage(_welcomeText, &mainMenu);
-  welcomeMessage = _welcomeMessage;
-  grOpts.push_back(&welcomeMessage);
-  Menu menu(&grOpts, &lcd, true, 3000);
-  greetingsMenu = menu;
+  MenuOption* _welcomeMessage = new MenuOption(_welcomeText, createMainMenu);
+  // int* sdasda = (int*)malloc(sizeof(int));
+  grOpts.push_back(_welcomeMessage);
+  // Menu* menu = (Menu*)malloc(sizeof(Menu));
+  // Serial.println("hello 5");
+  // *menu = Menu(&grOpts, &lcd, true, 3000);
+ return menu;
+}
 
-  MenuOption _aboutLineOne("Check my stuff\n", &mainMenu);
-  GreetingOption _aboutLineTwo("bit.ly/3EBftyx\n");
-  aboutLineOne = _aboutLineOne;
-  aboutLineTwo = _aboutLineTwo;
-  grOptsAb.push_back(&aboutLineOne); grOptsAb.push_back(&aboutLineTwo);
-  Menu _aboutMenu(&grOptsAb, &lcd, false);
-  aboutMenu = _aboutMenu;
+Menu* createMainMenu() {
+  MenuOption* _playOption = new MenuOption("Play", createDisplayMenu);
+  MenuOption*_settingsOption = new MenuOption("Settings\n", createSettingsMenu);
+  MenuOption* _aboutOption = new MenuOption("About", createAboutMenu);
+  MenuOption* _highScoreOption = new MenuOption("Scores\n", createScoreMenu);
+  grOptsMn.push_back(_playOption); grOptsMn.push_back(_settingsOption); grOptsMn.push_back(_aboutOption); grOptsMn.push_back(_highScoreOption);
+  Menu* menu = new Menu(&grOptsMn, &lcd, false);
+  // Serial.println("----created main menu-----");
+  // delay(500);
+  return menu;
+}
 
-  SystemOption _contrastOption("Contrast", contrastPin, baseContrast, RWHelper::readContrast(), 10, true, RWHelper::writeContrast), _brightOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::readLCDBright(), 20, true, RWHelper::writeLCDBright);
-  LEDOption _ledOption("LED brg.", &lc, RWHelper::readLEDBright(), true, RWHelper::writeLEDBright);
-  GameOption _diffOption("Difficulty", &difficulty, difficulty, RWHelper::readDiff(), 1, 3, true, RWHelper::writeDiff);
-  MenuOption _backSetOption("Back\n", &mainMenu);
-  contrastOption = _contrastOption;
-  brightOption = _brightOption;
-  ledOption = _ledOption;
-  diffOption = _diffOption;
-  backSetOption = _backSetOption;
-  grOptsSt.push_back(&contrastOption); grOptsSt.push_back(&brightOption); grOptsSt.push_back(&ledOption); grOptsSt.push_back(&diffOption); grOptsSt.push_back(&backSetOption);
-  Menu _settingsMenu(&grOptsSt, &lcd, false);
-  settingsMenu = _settingsMenu;
+Menu* createAboutMenu() {
+  MenuOption* _aboutLineOne = new MenuOption("Check my stuff\n", createMainMenu);
+  MenuOption* _aboutLineTwo = new MenuOption("bit.ly/3EBftyx\n", createMainMenu);
+  grOptsAb.push_back(_aboutLineOne); grOptsAb.push_back(_aboutLineTwo);
+  Menu* menu = new Menu(&grOptsAb, &lcd, false);
+  return menu;
+}
 
-  DisplayOption _height("Height: ", player.getHeightAddr(), true, &playStats), _lives("Lives: ", player.getLivesAddr(), false, &playStats);
-  height = _height;
-  lives = _lives;
-  grOptsPl.push_back(&height); grOptsPl.push_back(&lives);
-  Menu _playStats(&grOptsPl, &lcd, false);
-  playStats = _playStats;
+Menu* createSettingsMenu() {
+  SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::readContrast(), 10, true, RWHelper::writeContrast);
+  SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::readLCDBright(), 20, true, RWHelper::writeLCDBright);
+  LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::readLEDBright(), true, RWHelper::writeLEDBright);
+  GameOption* _diffOption = new GameOption("Difficulty", &difficulty, difficulty, RWHelper::readDiff(), 1, 3, true, RWHelper::writeDiff);
+  MenuOption* _backSetOption = new MenuOption("Back\n", createMainMenu);
+  grOptsSt.push_back(_contrastOption); grOptsSt.push_back(_brightOption); grOptsSt.push_back(_ledOption); grOptsSt.push_back(_diffOption); grOptsSt.push_back(_backSetOption);
+  Menu* menu = new Menu(&grOptsSt, &lcd, false);
+  return menu;
+}
 
+Menu* createScoreMenu() {
+  MenuOption* _backFromScore = new MenuOption("Back\n", createMainMenu);
+  if(RWHelper::readHighNum() == 0) {
+    GreetingOption* _noScores = new GreetingOption("No scores...\n");
+    grOptsHs.push_back(_noScores);
+  }
+  else {
+    for(byte i = 1; i <= RWHelper::readHighNum(); ++i) {
+      char textVal[18];
+      int index = 0;
+      char name[3];
+      int score;
+      RWHelper::readHigh(i, name);
+      char number[20];
+      itoa(i, number, 10);
+      for(byte j = 0; number[j]; ++j) {
+        textVal[index++] = number[j];
+      }
+      textVal[index++] = '.';
+      for(byte j = 0; j < 3; ++j) {
+        textVal[index++] = name[j];
+      }
+      textVal[index++] = ' ';
+      itoa(score, number, 10);
+      for(byte j = 0; number[j]; ++j) {
+        textVal[index++] = number[j];
+      }
+      textVal[index++] = '\n';
+      textVal[index] = '\0';
+      GreetingOption* _score = new GreetingOption(textVal);
+      grOptsHs.push_back(_score);
+    }
+  }
+  grOptsHs.push_back(_backFromScore);
+  Menu* menu = new Menu(&grOptsHs, &lcd, false);
+  return menu;
+}
 
-  MenuOption _playOption("Play", &playStats), _settingsOption("Settings\n", &settingsMenu), _aboutOption("About", &aboutMenu), _highScoreOption("Scores\n", &highScoreMenu);
-  playOption = _playOption;
-  settingsOption = _settingsOption;
-  aboutOption = _aboutOption;
-  highSchoreOption = _highScoreOption;
-  grOptsMn.push_back(&playOption); grOptsMn.push_back(&settingsOption); grOptsMn.push_back(&aboutOption); grOptsMn.push_back(&highSchoreOption);
-  Menu _mainMenu(&grOptsMn, &lcd, false);
-  mainMenu = _mainMenu;
+Menu* createDisplayMenu() {
+  Menu* menu = new Menu(&grOptsPl, &lcd, false);
+  DisplayOption* _height = new DisplayOption("Height: ", player.getHeightAddr(), true, menu);
+  DisplayOption* _lives = new DisplayOption("Lives: ", player.getLivesAddr(), false, menu);
+  grOptsPl.push_back(_height); grOptsPl.push_back(_lives);
+  return menu;
+}
 
-
-  MenuOption _gameOverOption("  Game over!\n", &mainMenu);
-  gameOverOption = _gameOverOption;
-  grOptsGo.push_back(&gameOverOption);
-  Menu _gameOver(&grOptsGo, &lcd, true, 2000);
-  gameOver = _gameOver;
-
-
-  currentMenu = &greetingsMenu;
+Menu* createGameOverMenu() {
+  MenuOption* _gameOverOption = new MenuOption("  Game over!\n", createMainMenu);
+  grOptsGo.push_back(_gameOverOption);
+  Menu* menu = new Menu(&grOptsGo, &lcd, false);
+  return menu;
 }
 
 // Custom character seem to slow down the LCD by a LOT.
@@ -173,6 +238,7 @@ void createMenus() {
 
 void setup() {
   Serial.begin(9600);
+  
   // the zero refers to the MAX7219 number, it is zero for 1 chip
   lc.shutdown(0, false); // turn off power saving, enables display
   lc.setIntensity(0, RWHelper::readLEDBright()); // sets brightness (0~15 possible values)
@@ -191,12 +257,18 @@ void setup() {
   pinMode(brightnessPin, OUTPUT);  
   analogWrite(contrastPin, RWHelper::readContrast());
   analogWrite(brightnessPin, RWHelper::readLCDBright());
+  Serial.print("brightness is");
+  Serial.println(RWHelper::readLCDBright());
+
+//   RWHelper::clear();
   
   difficulty = RWHelper::readDiff();
   player = Player(3, 10, 2, 14, &world);
   world = World(&lc, &player);
-  createMenus();
+  currentMenu = createWelcomeMenu();
   currentState = BrowsingMenus;
+  // Serial.println("restarted-------------------------    ");
+  // delay(1000);
 }
 
 // refine inputs to be used with menus, we don't really care to know its exact value, only whether it's activated positively or not
@@ -293,19 +365,19 @@ void handleJoyClick() {
 }
 
 void loop() {  
-  if(currentMenu == &playStats && currentState == BrowsingMenus) {
-    currentState = PlayingGame;
-  }
-  else if(currentMenu != &playStats && currentState == PlayingGame) {
-    currentState = BrowsingMenus;
-  } 
+  // if(currentMenu == &playStats && currentState == BrowsingMenus) {
+  //   currentState = PlayingGame;
+  // }
+  // else if(currentMenu != &playStats && currentState == PlayingGame) {
+  //   currentState = BrowsingMenus;
+  // } 
 
-  if(currentState == PlayingGame && player.getLives() <= 0) {
-    currentState = BrowsingMenus;
-    currentMenu->clear();
-    player.clear(3, 10, 2, 14);
-    currentMenu = &gameOver;
-  }
+  // if(currentState == PlayingGame && player.getLives() <= 0) {
+  //   currentState = BrowsingMenus;
+  //   currentMenu->clear();
+  //   player.clear(3, 10, 2, 14);
+  //   currentMenu = &gameOver;
+  // }
 
   if(currentState == PlayingGame) {
     btReading = digitalRead(btPin);
@@ -339,10 +411,21 @@ void loop() {
   }
 
   world.drawOnMatrix();
+  // Serial.println("before drawing");
+  // delay(500);
   currentMenu->drawMenu();
+  // Serial.println("drawing");
+  // delay(500);
+  currentMenu->printValues();
   currentMenu->checkDisplayValues();
+  // Serial.println("checking");
+  // delay(500);
   currentMenu->blinkCursor();
+  // Serial.println("blinking");
+  // delay(500);
   currentMenu->blinkUpDown();
+  // Serial.println("updown");
+  // delay(500);
   if(currentState == PlayingGame) {
     if(millis() - Player::lastFell >= Player::fallInterval) {
       player.fall(); // check if they should fall
@@ -350,9 +433,16 @@ void loop() {
     }
   }
   handleJoyInputs();
+  // Serial.println("joying");
+  // delay(500);
   handleJoyClick();
-  if(currentMenu->isGreeting()) 
-    currentMenu->killSelf(&currentMenu, &mainMenu);
+  // Serial.println("clicking");
+  // delay(500);
+  if(currentMenu->isGreeting()) {
+    currentMenu->killSelf(&currentMenu);
+    // Serial.println("killing");
+    // delay(500);
+  }
 
 //   Serial.println(hello->getOptions());
 }

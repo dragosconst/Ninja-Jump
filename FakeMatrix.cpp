@@ -42,6 +42,16 @@ FakeMatrix::FakeMatrix(const FakeMatrix& other) {
     }
 }
 
+FakeMatrix& FakeMatrix::operator=(const FakeMatrix& other) {
+    this->numRows = other.numRows;
+    this->numCols = other.numCols;
+    this->matrix = (byte*)malloc(this->numRows * this->numCols * sizeof(byte));
+    for(int i = 0; i < this->numRows * this->numCols; ++i){
+        this->matrix[i] = other.matrix[i];
+    }
+    return *this;
+}
+
 FakeMatrix::~FakeMatrix() {
     free(this->matrix);
 }
