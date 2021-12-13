@@ -270,9 +270,10 @@ void NameOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu) {}
+DisplayOption::DisplayOption(const char* text, int* value, bool last, Menu* currentMenu) : Option(valueDisplay, text), value(value), oldValue(*value), last(last), currentMenu(currentMenu),
+lastChecked(0) {}
 
-long DisplayOption::lastChecked = 0;
+const byte DisplayOption::checkInterval = 10;
 
 void DisplayOption::checkValue() {
     if(millis() - DisplayOption::lastChecked >= DisplayOption::checkInterval) {

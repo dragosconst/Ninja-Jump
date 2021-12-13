@@ -156,8 +156,6 @@ Menu* createScoreMenu() {
       textVal[index++] = '\n';
       textVal[index] = '\0';
       GreetingOption* _score = new GreetingOption(textVal);
-      Serial.println(textVal);
-      Serial.println(name);
       grOptsHs.push_back(_score);
     }
   }

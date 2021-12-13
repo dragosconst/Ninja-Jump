@@ -38,7 +38,7 @@ public:
     bool onStableGround() const;
     void fall();
     void jump();
-    void startJumping() { Serial.println("hallo");Player::lastJumped = millis();this->jumping = true;}
+    void startJumping() {Player::lastJumped = millis();this->jumping = true;}
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
 

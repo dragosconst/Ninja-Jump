@@ -126,20 +126,11 @@ int Menu::getArduinoLine(int line, char* writeHere) {
 
 // what draw menu basically does is animate a neat drawing animation and never do anything else afterwise
 void Menu::drawMenu() {
-    // Serial.println(this->finsihedDrawing);
-    // delay(10);
     if(this->finsihedDrawing)
         return;
     
-    // Serial.println("adjajajdjas");
-    // delay(100);
     char lineText[MAX_OPTION_TEXT];
-    // Serial.println("before arduino get line");
-    // delay(100);
     int lineSize = this->getArduinoLine(this->currentLine, lineText);
-    // Serial.println("line size succesful");
-    // Serial.println(lineSize);
-    // delay(100);
     if(lineSize <= 0) {
         this->finsihedDrawing = true;
         return;
@@ -147,24 +138,17 @@ void Menu::drawMenu() {
 
     if(millis() - this->lastLetterDrawn >= this->drawInterval || (this->firstLineShown != 0 && this->currentLine == this->firstLineShown)) {
         this->lcd->setCursor(this->currentPos, this->currentLine - this->firstLineShown);
-        // Serial.println("cursor succesful");
-        // delay(100);
         char printChar = lineText[this->currentPos - 1];
         this->lcd->print(printChar);
-        // Serial.println((int)this->lcd);
-        // Serial.println(lineText);
-        // Serial.println(printChar);
         this->currentPos += 1;
         if(this->currentPos > lineSize + 1) {
             this->currentPos = 1;
             this->currentLine += 1;
             if(this->currentLine == this->firstLineShown + 2) {
-                // Serial.println("my dude");
                 this->finsihedDrawing = true;
             }
         }
         this->lastLetterDrawn = millis();
-        // Serial.println("derp");
     }
 }
 
@@ -189,11 +173,6 @@ void Menu::killSelf(Menu** currentMenu) {
          * 
          */
         Option* currentOption = (*this->options)[this->optionSelected];
-        // Serial.println("uhhh hello???");
-        // Serial.println(millis());
-        // Serial.println(this->lastLetterDrawn);
-        // Serial.println(this->timeDrawn);
-        // delay(500);
         currentOption->focus(currentMenu);
     }
 }
@@ -223,7 +202,7 @@ Point Menu::findCursorPosition() {
 }
 
 void Menu::blinkCursor() {
-    if(!this->finsihedDrawing || this->greetingMenu)
+    if(!this->finsihedDrawing || this->greetingMenu || this->playingMenu)
         return;
     // stop the animation to show we locked in to this option
 
@@ -252,7 +231,7 @@ void Menu::blinkCursor() {
 }
 
 void Menu::blinkUpDown() {
-    if(!this->finsihedDrawing || this->greetingMenu)
+    if(!this->finsihedDrawing || this->greetingMenu || this->playingMenu)
         return;
     
     if(this->firstLineShown == 0 && this->firstLineShown + 2 >= this->getLastLine())

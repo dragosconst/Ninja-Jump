@@ -148,9 +148,9 @@ private:
     byte oldValue;
     bool last;
     Menu* currentMenu;
-    static long lastChecked;
+    long lastChecked;
 public:
-    static const byte checkInterval = 10; // interval at which the value is checked for changes
+    static const byte checkInterval; // interval at which the value is checked for changes
     
     DisplayOption() {}
     DisplayOption(const char* text, int* value, bool last, Menu* currentMenu);
