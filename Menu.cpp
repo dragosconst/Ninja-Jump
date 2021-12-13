@@ -12,6 +12,7 @@ bool Menu::upDownState = LOW;
 
 Menu::Menu() {
     this->finsihedDrawing = false;
+    this->playingMenu = false;
     this->optionSelected = 0;
     this->lastLetterDrawn = 0;
     this->currentLine = 0;
@@ -19,13 +20,14 @@ Menu::Menu() {
     this->firstLineShown = 0;
 }
 
-Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0) {
+Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0, bool playingMenu = false) {
     this->options = options;
     this->lcd = lcd;
     this->optionSelected = 0;
     this->greetingMenu = greetingMenu;
     this->finsihedDrawing = false;
     this->timeDrawn = timeDrawn;
+    this->playingMenu = playingMenu;
     this->lastLetterDrawn = 0;
     this->currentLine = 0;
     this->currentPos = 1;
@@ -38,6 +40,7 @@ Menu::Menu(const Menu& other) {
     this->lcd = other.lcd;
     this->greetingMenu = other.greetingMenu;
     this->finsihedDrawing = false;
+    this->playingMenu = other.playingMenu;
     this->timeDrawn = other.timeDrawn;
     this->lastLetterDrawn = 0;
     this->currentLine = 0;
@@ -51,6 +54,7 @@ Menu& Menu::operator=(const Menu& other) {
     this->lcd = other.lcd;
     this->greetingMenu = other.greetingMenu;
     this->finsihedDrawing = false;
+    this->playingMenu = other.playingMenu;
     this->timeDrawn = other.timeDrawn;
     this->lastLetterDrawn = 0;
     this->currentLine = 0;
@@ -179,6 +183,11 @@ void Menu::killSelf(Menu** currentMenu) {
     if(!this->greetingMenu)
         return;
     if(millis() - this->lastLetterDrawn > this->timeDrawn) {
+        /**
+         * @brief 
+         * It's assumed the first option in a greeting menu will be the transition option to the next menu.
+         * 
+         */
         Option* currentOption = (*this->options)[this->optionSelected];
         // Serial.println("uhhh hello???");
         // Serial.println(millis());
@@ -246,7 +255,7 @@ void Menu::blinkUpDown() {
     if(!this->finsihedDrawing || this->greetingMenu)
         return;
     
-    if(this->firstLineShown == 0 && this->firstLineShown + 2 == this->getLastLine())
+    if(this->firstLineShown == 0 && this->firstLineShown + 2 >= this->getLastLine())
         return;
 
     if(millis() - Menu::lastUpDownBlink >= Menu::upDownBlink) {
@@ -373,6 +382,9 @@ byte Menu::getOptionVecPos(Option* option) {
 }
 
 void Menu::joystickInput(int xVal, int yVal) {
+    if(this->greetingMenu)
+        return;
+
     // propagate input to option
     Option* currentOption = (*this->options)[this->optionSelected];
     if(this->checkOptionFocused()) {
@@ -513,7 +525,7 @@ void Menu::updateOptionValue(Option* option) {
         if(crOption == option) {
             this->lcd->setCursor(col, line - this->firstLineShown); // + 1 for the whitespace before it
             int len = strlen(optionText);
-            if(optionText[len - 1] == '\n') {
+            if(optionText[len - 1] == '\n') { // by doing this, I make sure no funny characters are printed to the lcd screen
                 optionText[len - 1] = '\0';
             }
             this->lcd->print(optionText);
@@ -535,14 +547,22 @@ void Menu::updateOptionValue(Option* option) {
 void Menu::checkDisplayValues() {
     for(size_t i = 0; i < this->options->size(); ++i) {
         Option* crOption = (*this->options)[i];
-        if(crOption->getType() != valueDisplay) // arduino can't use downcasting using dynamic cast
+        if(crOption->getType() != valueDisplay && crOption->getType() != nameOption) // arduino can't do downcasting using dynamic cast
             continue;
-        DisplayOption* d_crOption = (DisplayOption*) crOption;
-        char optionText[MAX_OPTION_TEXT];
-        crOption->getTextValue(optionText);
-        // Serial.println(optionText);
+        if(crOption->getType() == valueDisplay) {
+            DisplayOption* d_crOption = (DisplayOption*) crOption;
+            char optionText[MAX_OPTION_TEXT];
+            crOption->getTextValue(optionText);
+            // Serial.println(optionText);
 
-        d_crOption->checkValue();
+            d_crOption->checkValue();
+        }
+        else {
+            NameOption* n_crOption = (NameOption*) crOption;
+            if(n_crOption->changedChar()) {
+                this->updateOptionValue(crOption);
+            }
+        }
     }
 }
 
@@ -559,4 +579,13 @@ void Menu::printValues() {
     Serial.println(this->finsihedDrawing);
     Serial.println("stop printing");
     // delay(500);
+}
+
+void Menu::updateState(GameStates* state) {
+    if(*state == BrowsingMenus && this->playingMenu) {
+        *state = PlayingGame;
+    }
+    else if(*state == PlayingGame && !this->playingMenu) {
+        *state = BrowsingMenus;
+    }
 }

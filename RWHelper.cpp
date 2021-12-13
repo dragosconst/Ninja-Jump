@@ -9,10 +9,15 @@ const byte RWHelper::highScoreNumAddr = 4 * sizeof(byte); // from 4 onwards the 
 const byte RWHelper::charLimit = 3;
 
 void RWHelper::clear() {
-    byte highScoreSize = 1 + RWHelper::charLimit;
+    byte highScoreSize = sizeof(int) + RWHelper::charLimit * sizeof(char);
     for(int i = 0; i < 5 ; ++i) {
         EEPROM.put(i * sizeof(byte), 0);
-        EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + 1, 0);
+        byte j = 0;
+        EEPROM.put(RWHelper::highScoreNumAddr + sizeof(byte) + i * highScoreSize, 0);
+        while(j < RWHelper::charLimit) {
+            EEPROM.put(RWHelper::highScoreNumAddr + sizeof(byte) + i * highScoreSize + sizeof(int) +  j * sizeof(char), 0);
+            j++;
+        }
     }
 }
 
@@ -37,32 +42,45 @@ void RWHelper::writeHighNum(byte value) {
 }
 
 void RWHelper::writeHigh(int value, char* name) {
-    byte highScoreSize = 1 + RWHelper::charLimit;
+    byte highScoreSize = sizeof(int) + RWHelper::charLimit * sizeof(char);
     byte n;
     EEPROM.get(RWHelper::highScoreNumAddr, n);
     int oldValue = -1;
     char oldName[RWHelper::charLimit];
-    for(int i = 0; i < n; ++i) {
+    
+    for(int i = 0; i < min(5, n + 1); ++i) {
         int currentVal;
-        EEPROM.get(RWHelper::highScoreNumAddr + i * highScoreSize + 1, currentVal);
-        if(currentVal < value && oldValue == -1) {
-            EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + 1, value);
+        EEPROM.get(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte), currentVal);
+        if(currentVal <= value && oldValue == -1) {
+            EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte), value);
             for(int j = 0; j < RWHelper::charLimit; ++j) {
-                EEPROM.get(RWHelper::highScoreNumAddr + i * highScoreSize + 2 + j, oldName[j]);
-                EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + 2 + j, name[j]);
+                EEPROM.get(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte) + sizeof(int) + sizeof(char) * j, oldName[j]);
+                EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte) + sizeof(int) + sizeof(char) * j, name[j]);
             }
             oldValue = currentVal;
             continue;
         }
         if(oldValue > 0) { // shift back the other high scores
-            EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + 1, oldValue);
+            EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte), oldValue);
             char aux;
             for(int j = 0; j < RWHelper::charLimit; ++j) {
-                EEPROM.get(RWHelper::highScoreNumAddr + i * highScoreSize + 2 + j, aux);
-                EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + 2 + j, oldName[j]);
+                EEPROM.get(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte) + sizeof(int) + sizeof(char) * j, aux);
+                EEPROM.put(RWHelper::highScoreNumAddr + i * highScoreSize + sizeof(byte) + sizeof(int) + sizeof(char) * j, oldName[j]);
                 oldName[j] = aux;
             }
             oldValue = currentVal;
+        }
+    }
+    if(n + 1 <= 5) {
+        RWHelper::writeHighNum(n + 1);
+    } 
+
+    // this can only happend when there are less than 5 high scores and this is smaller than all the other high scores,
+    // therefore we need to write it at the end
+    if(oldValue < 0) {
+        EEPROM.put(RWHelper::highScoreNumAddr + n * highScoreSize + sizeof(byte), value);
+        for(int j = 0; j < RWHelper::charLimit; ++j) {
+            EEPROM.put(RWHelper::highScoreNumAddr + n * highScoreSize + sizeof(byte) + sizeof(int) + sizeof(char) * j, name[j]);
         }
     }
 }
@@ -103,10 +121,19 @@ int RWHelper::readHigh(int which, char* writeHere) {
     EEPROM.get(RWHelper::highScoreNumAddr, n);
     if(which <= 0 || which > n)
         return -1; // invalid addresses
-    EEPROM.get(RWHelper::highScoreNumAddr + (which - 1) * (sizeof(int) + RWHelper::charLimit * sizeof(char)) + 1, retval);
+    EEPROM.get(RWHelper::highScoreNumAddr + (which - 1) * (sizeof(int) + RWHelper::charLimit * sizeof(char)) + sizeof(byte), retval);
     for(byte j = 0; j < RWHelper::charLimit; ++j) {
-        EEPROM.get(RWHelper::highScoreNumAddr + (which - 1) * (sizeof(int) + RWHelper::charLimit * sizeof(char)) + 2 + j, writeHere[j]);
+        EEPROM.get(RWHelper::highScoreNumAddr + (which - 1) * (sizeof(int) + RWHelper::charLimit * sizeof(char)) + sizeof(byte) + sizeof(int) + sizeof(char) * j, writeHere[j]);
     }
     return retval;
 }
 
+int RWHelper::getLastHigh() {
+    int retval = 0;
+    byte n;
+    EEPROM.get(RWHelper::highScoreNumAddr, n);
+    if(n < 5)
+        return 0;
+    EEPROM.get(RWHelper::highScoreNumAddr + sizeof(byte) + (n - 1) * (sizeof(int) + RWHelper::charLimit * sizeof(char)), retval);
+    return retval;
+}

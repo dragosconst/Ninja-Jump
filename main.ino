@@ -5,18 +5,17 @@
 #include "Player.h"
 #include "RWHelper.h"
 
-enum GameStates {BrowsingMenus, PlayingGame};
 enum Difficulties {Easy = 0, Normal, Hard};
 
-const int dinPin = 11;
-const int clockPin = 12;
-const int loadPin = 9;
+const byte dinPin = 11;
+const byte clockPin = 12;
+const byte loadPin = 9;
 
-const int xPin = A0;
-const int yPin = A1;
-const int swPin = A2; // don't have enough pins unfortunately
+const byte xPin = A0;
+const byte yPin = A1;
+const byte swPin = A2; // don't have enough pins unfortunately
 
-const int btPin = A3;
+const byte btPin = A3;
 bool btnState = HIGH;
 byte btDebounce = 50;
 byte btReading = HIGH;
@@ -25,14 +24,14 @@ long lastBtPush = 0;
 bool btPushed = LOW;
 bool previousBtPush = LOW;
 
-const int contrastPin = 3;
-const int RSPin = 8;
-const int EPin = 13;
-const int D4 = 7;
-const int D5 = 6;
-const int D6 = 4;
-const int D7 = 2;
-const int brightnessPin = 10;
+const byte contrastPin = 3;
+const byte RSPin = 8;
+const byte EPin = 13;
+const byte D4 = 7;
+const byte D5 = 6;
+const byte D6 = 4;
+const byte D7 = 2;
+const byte brightnessPin = 10;
 
 byte baseContrast = 60;
 byte baseLCDBrightness = 150;
@@ -63,25 +62,8 @@ Player player;
 World world;
 
 // Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats, gameOver, congrats, enterName;
-// MenuOption welcomeMessage;
 
-// MenuOption playOption, settingsOption, aboutOption, highSchoreOption;
-
-// MenuOption aboutLineOne;
-// GreetingOption aboutLineTwo;
-
-// SystemOption contrastOption, brightOption;
-// LEDOption ledOption;
-// GameOption diffOption; // maybe volume too?
-// MenuOption backSetOption; 
-
-// GreetingOption scores[5], noScores;
-// MenuOption backFromScore;
-
-// DisplayOption height, lives;
-
-// MenuOption gameOverOption;
-
+// should probably dynamically alocate these too
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
@@ -89,40 +71,28 @@ Option* grOptsStArr[5];
 Option* grOptsPlArr[2];
 Option* grOptsHsArr[7];
 Option* grOptsGoArr[1];
+Option* grOptsCgArr[2];
+Option* grOptsNmArr[2];
 Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr), grOptsGo(grOptsGoArr),
-grOptsHs(grOptsHsArr);
+grOptsHs(grOptsHsArr), grOptsCg(grOptsCgArr), grOptsNm(grOptsNmArr);
 Menu* currentMenu;
 
-inline Menu* createWelcomeMenu();
+Menu* createWelcomeMenu();
 Menu* createMainMenu();
 Menu* createAboutMenu();
 Menu* createScoreMenu();
 Menu* createSettingsMenu();
 Menu* createDisplayMenu();
+Menu* createNameMenu();
+Menu* createCongratulationsMenu();
 Menu* createGameOverMenu();
 
-inline Menu* createWelcomeMenu() { 
-//  volatile int* myint = (int*)malloc(4* sizeof(int));
-    // volatile int* arr3 = (int*)malloc(21 * sizeof(char));
-  // volatile int* arr = (int*)malloc(2*sizeof(int));
-  // volatile int* arrf = (int*)malloc(2*sizeof(float));
+Menu* createWelcomeMenu() { 
   Menu* menu = new Menu(&grOpts, &lcd, true, 3000);
   menu->clear();
-//  Serial.println((int)arr2);
-//  Serial.println(NULL);
-// // Serial.println((int)arr3);
-//  Serial.println((int)arr);
-//  Serial.println(sizeof(Menu));
-//  Serial.println((int)arrf);
-//  Serial.println(sizeof(MenuOption));
-//  Serial.println("stuff 3");
   const char* _welcomeText = "   Welcome! \n\0";
   MenuOption* _welcomeMessage = new MenuOption(_welcomeText, createMainMenu);
-  // int* sdasda = (int*)malloc(sizeof(int));
   grOpts.push_back(_welcomeMessage);
-  // Menu* menu = (Menu*)malloc(sizeof(Menu));
-  // Serial.println("hello 5");
-  // *menu = Menu(&grOpts, &lcd, true, 3000);
  return menu;
 }
 
@@ -133,8 +103,6 @@ Menu* createMainMenu() {
   MenuOption* _highScoreOption = new MenuOption("Scores\n", createScoreMenu);
   grOptsMn.push_back(_playOption); grOptsMn.push_back(_settingsOption); grOptsMn.push_back(_aboutOption); grOptsMn.push_back(_highScoreOption);
   Menu* menu = new Menu(&grOptsMn, &lcd, false);
-  // Serial.println("----created main menu-----");
-  // delay(500);
   return menu;
 }
 
@@ -164,12 +132,13 @@ Menu* createScoreMenu() {
     grOptsHs.push_back(_noScores);
   }
   else {
+    // creating the score text is much more tedious than it seems, but it's mostly due to memory restrictions
+    // using strings would have reduced this to probably a couple lines of code
     for(byte i = 1; i <= RWHelper::readHighNum(); ++i) {
       char textVal[18];
       int index = 0;
       char name[3];
-      int score;
-      RWHelper::readHigh(i, name);
+      int score = RWHelper::readHigh(i, name);
       char number[20];
       itoa(i, number, 10);
       for(byte j = 0; number[j]; ++j) {
@@ -187,6 +156,8 @@ Menu* createScoreMenu() {
       textVal[index++] = '\n';
       textVal[index] = '\0';
       GreetingOption* _score = new GreetingOption(textVal);
+      Serial.println(textVal);
+      Serial.println(name);
       grOptsHs.push_back(_score);
     }
   }
@@ -195,10 +166,25 @@ Menu* createScoreMenu() {
   return menu;
 }
 
+Menu* createNameMenu() {
+  Menu* menu = new Menu(&grOptsNm, &lcd, false);
+  NameOption* _enterName = new NameOption("Name:", &player, RWHelper::writeHigh, createMainMenu);
+  grOptsNm.push_back(_enterName);
+  return menu;
+}
+
+Menu* createCongratulationsMenu() {
+  Menu* menu = new Menu(&grOptsCg, &lcd, true, 2000);
+  MenuOption* _congratulations = new MenuOption("Congratulations\n", createNameMenu);
+  GreetingOption* _congratulationsLine2 = new GreetingOption("on new high s.\n");
+  grOptsCg.push_back(_congratulations); grOptsCg.push_back(_congratulationsLine2);
+  return menu;
+}
+
 Menu* createDisplayMenu() {
-  Menu* menu = new Menu(&grOptsPl, &lcd, false);
+  Menu* menu = new Menu(&grOptsPl, &lcd, false, 0, true);
   DisplayOption* _height = new DisplayOption("Height: ", player.getHeightAddr(), true, menu);
-  DisplayOption* _lives = new DisplayOption("Lives: ", player.getLivesAddr(), false, menu);
+  DisplayOption* _lives = new DisplayOption("Lives: ", player.getLivesAddr(), true, menu);
   grOptsPl.push_back(_height); grOptsPl.push_back(_lives);
   return menu;
 }
@@ -206,7 +192,7 @@ Menu* createDisplayMenu() {
 Menu* createGameOverMenu() {
   MenuOption* _gameOverOption = new MenuOption("  Game over!\n", createMainMenu);
   grOptsGo.push_back(_gameOverOption);
-  Menu* menu = new Menu(&grOptsGo, &lcd, false);
+  Menu* menu = new Menu(&grOptsGo, &lcd, true, 2000);
   return menu;
 }
 
@@ -257,18 +243,13 @@ void setup() {
   pinMode(brightnessPin, OUTPUT);  
   analogWrite(contrastPin, RWHelper::readContrast());
   analogWrite(brightnessPin, RWHelper::readLCDBright());
-  Serial.print("brightness is");
-  Serial.println(RWHelper::readLCDBright());
-
-//   RWHelper::clear();
+  // RWHelper::clear();
   
   difficulty = RWHelper::readDiff();
   player = Player(3, 10, 2, 14, &world);
   world = World(&lc, &player);
   currentMenu = createWelcomeMenu();
   currentState = BrowsingMenus;
-  // Serial.println("restarted-------------------------    ");
-  // delay(1000);
 }
 
 // refine inputs to be used with menus, we don't really care to know its exact value, only whether it's activated positively or not
@@ -297,7 +278,6 @@ bool newMovement(int xVal, int yVal) {
 bool newJoyClick() {
   if(swReading != previousSwReading) {
     lastSwPush = millis();
-//    Serial.println("heee hei");
   }
 
   if(millis() - lastSwPush > swDebounce) {
@@ -365,19 +345,23 @@ void handleJoyClick() {
 }
 
 void loop() {  
-  // if(currentMenu == &playStats && currentState == BrowsingMenus) {
-  //   currentState = PlayingGame;
-  // }
-  // else if(currentMenu != &playStats && currentState == PlayingGame) {
-  //   currentState = BrowsingMenus;
-  // } 
+  currentMenu->updateState(&currentState);
 
-  // if(currentState == PlayingGame && player.getLives() <= 0) {
-  //   currentState = BrowsingMenus;
-  //   currentMenu->clear();
-  //   player.clear(3, 10, 2, 14);
-  //   currentMenu = &gameOver;
-  // }
+  // game over
+  if(currentState == PlayingGame && player.getLives() <= 0) {
+    currentState = BrowsingMenus;
+    currentMenu->clear();
+    Menu* oldMenu = currentMenu;
+    if(RWHelper::getLastHigh() < player.getHeight()) {
+      currentMenu = createCongratulationsMenu();
+    }
+    else {
+      currentMenu = createGameOverMenu();
+      player.clear(3, 10, 2, 14);
+    }
+    oldMenu->freeOptions();
+    delete oldMenu;
+  }
 
   if(currentState == PlayingGame) {
     btReading = digitalRead(btPin);
@@ -411,21 +395,10 @@ void loop() {
   }
 
   world.drawOnMatrix();
-  // Serial.println("before drawing");
-  // delay(500);
   currentMenu->drawMenu();
-  // Serial.println("drawing");
-  // delay(500);
-  currentMenu->printValues();
   currentMenu->checkDisplayValues();
-  // Serial.println("checking");
-  // delay(500);
   currentMenu->blinkCursor();
-  // Serial.println("blinking");
-  // delay(500);
   currentMenu->blinkUpDown();
-  // Serial.println("updown");
-  // delay(500);
   if(currentState == PlayingGame) {
     if(millis() - Player::lastFell >= Player::fallInterval) {
       player.fall(); // check if they should fall
@@ -433,16 +406,9 @@ void loop() {
     }
   }
   handleJoyInputs();
-  // Serial.println("joying");
-  // delay(500);
   handleJoyClick();
-  // Serial.println("clicking");
-  // delay(500);
   if(currentMenu->isGreeting()) {
     currentMenu->killSelf(&currentMenu);
-    // Serial.println("killing");
-    // delay(500);
   }
 
-//   Serial.println(hello->getOptions());
 }

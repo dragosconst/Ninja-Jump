@@ -46,6 +46,7 @@ public:
     int getY() const { return this->y; }
     bool isJumping() const { return this->jumping; }
     int getLives() const { return this->lives;}
+    int getHeight() const { return this->height;}
     int* getLivesAddr()  { return &this->lives;}
     int* getHeightAddr() { return &this->height; }
 };

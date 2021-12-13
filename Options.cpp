@@ -198,36 +198,64 @@ void GameOption::getTextValue(char* writeHere) {
 
 const char NameOption::alphabet[62] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-NameOption::NameOption(const char* text, int score, const char* name, void (*eepromUpdate)(int, char*)) : Option(nameOption, text), score(score),
-eepromUpdate(eepromUpdate), crChar(0), crIndex(10) {
+NameOption::NameOption(const char* text, Player* player, void (*eepromUpdate)(int, char*), Menu* (*nextMenu)(void)) : Option(nameOption, text), player(player),
+eepromUpdate(eepromUpdate), crChar(0), crIndex(10), updatedIndex(false), nextMenu(nextMenu) {
     for(byte j = 0; j < 3; ++j) {
-        this->name[j] = name[j];
         this->vals[j] = 10;
     }
 }
 
 void NameOption::focus(Menu** currentMenu) {
     this->inFocus = true;
+    this->currentMenu = currentMenu;
 }
 
 void NameOption::unfocus() {
+    this->name[this->crChar] = NameOption::alphabet[this->crIndex];
+    this->crIndex = this->vals[++crChar];
     if(crChar == 3) {
         this->inFocus = false;
-        return;
+        this->name[3] == '\0';
+        Serial.println(this->player->getHeight());
+        this->eepromUpdate(this->player->getHeight(), this->name);
+        this->player->clear(3, 10, 2, 14);
+        Menu* oldMenu = *currentMenu;
+        // Serial.println("this is good so far");
+        // delay(300);
+        (*currentMenu)->clear();
+        *currentMenu = this->nextMenu();
+        oldMenu->freeOptions();
+        delete oldMenu;
     }
-    this->vals[crChar] = this->crIndex;
-    this->crIndex = this->vals[++crChar];
 }
 
 void NameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
     if(yVal == -1) {
-        if(this->crIndex > 0)
+        this->updatedIndex = true;
+        if(this->crIndex > 0) {
             this->crIndex--;
+        }
+        else {
+            this->crIndex = 61;
+        }
+        this->vals[crChar] = this->crIndex;
     }
     else if(yVal == 1) {
-        if(this->crIndex < 61)
+        this->updatedIndex = true;
+        if(this->crIndex < 61) {
             this->crIndex++;
+        }
+        else {
+            this->crIndex = 0;
+        }
+        this->vals[crChar] = this->crIndex;
     }
+}
+
+bool NameOption::changedChar() {
+    bool retval = this->updatedIndex;
+    this->updatedIndex = false;
+    return retval;
 }
 
 void NameOption::getTextValue(char* writeHere) {
@@ -238,7 +266,7 @@ void NameOption::getTextValue(char* writeHere) {
     for(byte j = 0; j < 3; ++j) {
         writeHere[i++] = NameOption::alphabet[this->vals[j]];
     }
-    writeHere[i++] = '\n';
+    writeHere[i++] = '\n'; // name option will always be treated as last name option
     writeHere[i] = '\0';
 }
 

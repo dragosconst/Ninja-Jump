@@ -6,6 +6,7 @@
 #include "LiquidCrystal.h"
 #include "Options.h"
 
+enum GameStates {BrowsingMenus, PlayingGame};
 class Option;
 
 struct Point {
@@ -31,6 +32,7 @@ private:
     byte currentPos; // current position on current line -> this is actual array position, not logical position, i.e. which option this one is in its respective line
     byte firstLineShown; // for menus that have more than just two lines
     bool greetingMenu;
+    bool playingMenu;
     LiquidCrystal* lcd;
     bool finsihedDrawing;
     int timeDrawn;
@@ -54,7 +56,7 @@ public:
     static bool upDownState;
 
     Menu();
-    Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0);
+    Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0, bool playinfgMenu=false);
     Menu(const Menu& other);
     Menu& operator=(const Menu& other);
     ~Menu() {}
@@ -70,6 +72,7 @@ public:
     void checkDisplayValues();
     void freeOptions();
     void printValues();
+    void updateState(GameStates* state);
 
     bool isGreeting() const { return this->greetingMenu; }
 };

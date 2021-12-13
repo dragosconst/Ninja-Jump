@@ -35,6 +35,7 @@ public:
     static byte readDiff();
     static byte readHighNum();
     static int readHigh(int which, char* writeHere);
+    static int getLastHigh();
 };
 
 #endif

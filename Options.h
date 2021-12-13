@@ -7,6 +7,7 @@
 #include "LiquidCrystal.h"
 #include <LedControl.h>
 #include "Menu.h"
+#include "Player.h"
 
 // a menu option can either be:
 // 1. a menu transition - selecting it will transition to a new menu
@@ -116,23 +117,28 @@ public:
     void getTextValue(char* writeHere);
 };
 
+// this also acts as sort of a pseudo-Menu option, beacause I thought it would be better to instantly transition after inputting your name
 class NameOption : public Option {
 private:
     static const char alphabet[62];
-    int score;
-    char name[3];
+    Player* player;
     byte vals[3];
+    char name[4];
     void (*eepromUpdate)(int, char*);
-    byte crIndex;
-    byte crChar;
+    Menu* (*nextMenu)(void);
+    Menu** currentMenu;
+    byte crIndex; // which letter i have selected at this moment
+    byte crChar; // which character of the name im currently writing
+    bool updatedIndex;
 public:
     NameOption() {}
-    NameOption(const char* text, int score, const char* name, void (*eepromUpdate)(int, char*));
+    NameOption(const char* text, Player* player, void (*eepromUpdate)(int, char*), Menu* (*nextMenu)(void));
     ~NameOption() {}
 
     void focus(Menu** currentMenu);
     void joystickInput(int xVal, int yVal, Menu* currentMenu);
     void unfocus();
+    bool changedChar();
     void getTextValue(char* writeHere);
 };
 
