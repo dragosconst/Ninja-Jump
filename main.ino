@@ -227,7 +227,6 @@ void setup() {
   lc.shutdown(0, false); // turn off power saving, enables display
   lc.setIntensity(0, RWHelper::readLEDBright()); // sets brightness (0~15 possible values)
   lc.clearDisplay(0);// clear screen
-  lc.setRow(0, 1, B11111111);
 
   lcd.begin(16, 2);
 
@@ -372,13 +371,14 @@ void loop() {
     // }
     else if(!newBtnPress() && btPushed && btReading == HIGH) {
       player.stopJumping();
+      Player::lastFell = millis(); // pause for brief moment in the air
       btPushed = LOW;
     }
-    if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
-      player.stopJumping();
-    }
-    else {
-    }
+    // if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
+    //   player.stopJumping();
+    // }
+    // else {
+    // }
     previousBtReading = btReading;
 
     if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
@@ -387,12 +387,15 @@ void loop() {
         Player::lastMovedJump = millis();
       }
     }
-    else {
+    else if(player.isJumping()) {
       player.stopJumping();
+      Player::lastFell = millis(); // pause for brief moment in the air
     }
   }
 
-  world.drawOnMatrix();
+  if(currentState == PlayingGame) {
+    world.drawOnMatrix();
+  }
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();
   currentMenu->blinkCursor();

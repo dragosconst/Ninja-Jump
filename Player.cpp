@@ -3,8 +3,8 @@
 
 const int Player::moveInterval = 80; // interval at which to move
 const int Player::moveIntervalInAir = 140;
-const int Player::maxJump = 1000; // maximum amount of time spent jumping
-const int Player::jumpInterval = 300; // interval at which to move in the air
+const int Player::maxJump = 500; // maximum amount of time spent jumping
+const int Player::jumpInterval = 160; // interval at which to move in the air
 const int Player::fallInterval = 200;
 
 unsigned long Player::lastMoved = 0;
