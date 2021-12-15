@@ -38,15 +38,19 @@ public:
     bool onStableGround() const;
     void fall();
     void jump();
-    void startJumping() {Player::lastJumped = millis();this->jumping = true;}
+    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true;}
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
+    static bool isInRange(byte x, byte y, byte sx, byte sy);
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }
     bool isJumping() const { return this->jumping; }
+    bool isFalling() const { return !this->onStableGround() && !this->jumping;}
     int getLives() const { return this->lives;}
     int getHeight() const { return this->height;}
+    static int getYRange() { return Player::maxJump / Player::jumpInterval;}
+    static int getXRange() { return Player::maxJump/Player::moveIntervalInAir;}
     int* getLivesAddr()  { return &this->lives;}
     int* getHeightAddr() { return &this->height; }
 };

@@ -12,7 +12,7 @@ struct Pos {
 /**
  * @brief 
  * Wrapper class for matrix bits.
- * While having a pointer and a byte for a bit is a 16x8=128 increase in memory usage!, this class is intended to be used only
+ * While having a pointer and a byte for a bit is a 16+8=24 increase in memory usage!, this class is intended to be used only
  * for program logic and not as a memory unit in the FakeMatrix class or elsewhere, therefore it's very unlikely for this approach
  * to cause any sort of problems. There are few instances in which you'd need more than one FakeBit variable in memory at a time.
  */
@@ -62,6 +62,7 @@ public:
     ~FakeMatrix();
 
     void setByte(const Pos& pos, const byte& b);
+    byte getByte(const Pos& pos) const { return this->matrix[ pos.i * this->numCols + pos.j / 8];}
     FakeBit operator[](const Pos& pos);
 };
 

@@ -244,7 +244,8 @@ void setup() {
   
   difficulty = RWHelper::readDiff();
   player = Player(3, 10, 2, 14, &world);
-  world = World(&lc, &player);
+  world = World(&lc, &player, difficulty);
+  randomSeed(analogRead(0));
   currentMenu = createWelcomeMenu();
   currentState = BrowsingMenus;
 }
@@ -309,7 +310,7 @@ void handleJoyInputs() {
     currentMenu->joystickInput(xVal, yVal);
   }
   else {
-    if(millis() - Player::lastMoved >= (player.onStableGround() ? Player::moveInterval : Player::moveIntervalInAir)){
+    if(millis() - Player::lastMoved >= (!(player.isJumping() || player.isFalling()) ? Player::moveInterval : Player::moveIntervalInAir)){
       xVal = refineInput(xVal);
       yVal = refineInput(yVal);
       if(xVal)

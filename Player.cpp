@@ -2,9 +2,9 @@
 #include "Player.h"
 
 const int Player::moveInterval = 80; // interval at which to move
-const int Player::moveIntervalInAir = 140;
+const int Player::moveIntervalInAir = 140;// interval at which to move in the air
 const int Player::maxJump = 500; // maximum amount of time spent jumping
-const int Player::jumpInterval = 160; // interval at which to move in the air
+const int Player::jumpInterval = 160;
 const int Player::fallInterval = 200;
 
 unsigned long Player::lastMoved = 0;
@@ -26,23 +26,38 @@ void Player::increaseHeight(int amount) {
 void Player::move(int xVal, int yVal) {
     if(xVal) {
         if(!this->passedPlatform)
-            this->world->map[Pos(this->y, this->x)] = 0;
+            this->world->worldMap[Pos(this->y, this->x)] = 0;
         else
             this->passedPlatform = false;
     }
     if(xVal == 1) {
-        if(x < 7 && !this->world->map[Pos(this->y, this->x + 1)].check())
+        if(x < 7 && !this->world->worldMap[Pos(this->y, this->x + 1)].check())
             this->x += 1;
-        this->world->map[Pos(this->y, this->x)] = 1;
+        this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
     else if(xVal == -1) {
-        if(x > 0 && !this->world->map[Pos(this->y, this->x - 1)].check())
+        if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check())
             this->x -= 1;
-        this->world->map[Pos(this->y, this->x)] = 1;
+        this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
 }
 
-bool Player::onStableGround() const { if(y == 15) return false; return this->world->map[Pos(y + 1, x)].check();}
+// This will check if the player could reach (x, y) by jumping from (sx, sy)
+// It is assumed that y <= sy
+bool Player::isInRange(byte x,  byte y, byte sx, byte sy) {
+    if(y > sy - Player::maxJump / Player::jumpInterval)
+        return false;
+    // the furthest it can continously move on the x axis in one jump
+    int posx =  Player::maxJump / Player::moveIntervalInAir;
+    if(x >= sx) {
+        return sx + posx >= x;
+    }
+    else {
+        return sx - posx <= x;
+    }
+}
+
+bool Player::onStableGround() const { if(y == 15) return false; return this->world->worldMap[Pos(y + 1, x)].check();}
 
 void Player::fall() {
     if(this->onStableGround())
@@ -50,7 +65,7 @@ void Player::fall() {
     if(this->isJumping())
         return;
     if(!this->passedPlatform)
-        this->world->map[Pos(this->y, this->x)] = 0;
+        this->world->worldMap[Pos(this->y, this->x)] = 0;
     else
         this->passedPlatform = false;
     this->y += 1;
@@ -59,14 +74,14 @@ void Player::fall() {
         this->x = this->lx;
         this->y = this->ly;
     }
-    this->world->map[Pos(this->y, this->x)] = 1;
+    this->world->worldMap[Pos(this->y, this->x)] = 1;
 }
 
 void Player::jump() {
     if(this->y == 0)
         return;
     if(!this->passedPlatform)
-        this->world->map[Pos(this->y, this->x)] = 0;
+        this->world->worldMap[Pos(this->y, this->x)] = 0;
     else
         this->passedPlatform = false;
     this->y -= 1;
@@ -74,9 +89,9 @@ void Player::jump() {
         this->maxY = this->y;
         this->height += 10;
     }
-    if(this->world->map[Pos(this->y, this->x)].check())
+    if(this->world->worldMap[Pos(this->y, this->x)].check())
         this->passedPlatform = true;
-    this->world->map[Pos(this->y, this->x)] = 1;
+    this->world->worldMap[Pos(this->y, this->x)] = 1;
 }
 
 // used to reset player after game over screen

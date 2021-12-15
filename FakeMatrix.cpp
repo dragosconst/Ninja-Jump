@@ -31,6 +31,7 @@ FakeBit& FakeBit::operator=(const FakeBit& other) {
 
 FakeMatrix::FakeMatrix(byte numRows, byte numCols) : numRows(numRows), numCols(numCols) {
     this->matrix = (byte*)malloc(numRows * numCols * sizeof(byte));
+    this->matrix = {0}; // initialize with zeros
 }
 
 FakeMatrix::FakeMatrix(const FakeMatrix& other) {
