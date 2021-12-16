@@ -248,7 +248,8 @@ Structure World::generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t an
 // generate a structure in given params
 Structure World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
     byte x = random(x_first, x_last - 1), y = random(y_first, y_last - 1); // anchor point of structure
-    if(y == 0) {
+    Serial.print("y is "); Serial.println(y);
+    if(y == World::numRows - 1) {
         return this->generateLine(y, x_first, xMax, x);
     }
     else {
@@ -284,7 +285,7 @@ bool World::tooClose(int8_t i, int8_t j) {
 }
 
 // get the best jumping range that includes i and j
-Pos World::getBestRange(byte i, byte j) {
+Structure World::getBestRange(byte i, byte j) {
     Pos closest(1000, 0);
     for(int y = World::numRows - 1; y >= 0; --y) {
         for(int x = 0; x < World::numCols; ++x) {
@@ -307,155 +308,65 @@ Pos World::getBestRange(byte i, byte j) {
 
 // if num is a negative number, this will generate all possible positions
 void World::generateFrom(int8_t x1, int8_t y1, int8_t x2, int8_t y2, int8_t num) {
-    if(x1 < 0 || x1 >= World::numCols || x2 >=  World::numCols || y1 < 0 || y2 >= World::numCols || y2 < 0) {
-            // not viable, have to check ONLY for this structure
-    Serial.println("failed-------------------------------------------");
-                for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
+    int8_t upX = 0, upY = 0, leftX = 0, leftY = 0;
+    int8_t y = y1, x = x1;
+    while(upX != -1 || leftX != -1) {
+        Serial.print("upx is "); Serial.println(upX);
+        Serial.print("upy is "); Serial.println(upY);
+        Serial.print("leftx is "); Serial.println(leftX);
+        Serial.print("lefty is "); Serial.println(leftY);
+        if(y == World::numRows - 1 && x == 0) {
+            Structure structure = this->generateStructure(x, max(y - 8, 0), min(x + 8, World::numCols - 1), y + 1, min(x + 8, World::numCols - 1), max(y - 8, 0));
+            int8_t minx = structure.x + structure.width + this->difficultyStepX * (this->difficulty + 1);
+            int8_t maxx = structure.x + structure.width + Player::maxJump / Player::moveIntervalInAir;
+            int8_t maxy = structure.y - this->difficultyStepY * (this->difficulty + 1);
+            int8_t miny = structure.y - Player::maxJump / Player::jumpInterval;
+            leftX = random(minx, maxx); leftY = random(max(structure.y - 2, 0), structure.y);
+            upX = random(max(structure.x - 2, 0), structure.x); upY = random(miny, maxy);
         }
-        Serial.println();
-    }
-    Serial.println();
-        Serial.println("failed");
-    Serial.print(x1); Serial.print(" ");Serial.print(y1);Serial.print(" "); Serial.print(x2);Serial.print(" "); Serial.print(y2);Serial.print(" "); Serial.println();
-        return;
-    }
-    if(!num) {
-        Serial.println("huh?----------------");
-        return;
-    }
-    if(this->tooClose(y2, x2)) {
-        Serial.println("nope");
-        Serial.print(x2); Serial.print(" "); Serial.print(y2); Serial.print(" "); Serial.println();
-        return;
-    }
-    if(this->tooClose(y1, x1)) { // during other generating calls, the map was populated in such a way that the current position isn't valid anymore
-        for(int y = y1; y >= y2; --y) {
-            for(int x = x1; x <= x2; ++x) {
-                if(!this->tooClose(y, x)) {
-                    x1 = x;
-                    y1 = y;
-                    y = y2 - 1; // break upper loop too
-                    break;
-                }
+        else if(y == leftY && x == leftX) {
+            Structure structure = this->generateStructure(x, y, x + 1, y + 1, min(x + 8, World::numCols - 1),  max(y - 8, 0));
+            int8_t minx = structure.x + structure.width + this->difficultyStepX * (this->difficulty + 1);
+            int8_t maxx = min(structure.x + structure.width + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1);
+            int8_t maxy = structure.y - this->difficultyStepY * (this->difficulty + 1);
+            int8_t miny = max(structure.y - Player::maxJump / Player::jumpInterval, 0);
+            if(minx >= World::numCols) {
+                leftX = -1; leftY = -1;
             }
-        }   
-    }
-            for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
-        }
-        Serial.println();
-    }
-    Serial.println("generating");
-    Serial.print(x1); Serial.print(" ");Serial.print(y1);Serial.print(" "); Serial.print(x2);Serial.print(" "); Serial.print(y2);Serial.print(" "); Serial.println();
-    // generate this structure
-    Structure structure = this->generateStructure(x1, y1, x2, y2, min(x1 + 8, World::numCols - 1), max(y1 - 8, 0));
-    delay(10);
-    // Serial.println("------------------------------------------");
-    // Serial.println("stuff");
-    // for(int i = 0; i < World::numRows; ++i) {
-    //     for(int j = 0; j < World::numCols; ++j) {
-    //         Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-    //         Serial.print(" ");
-    //     }
-    //     Serial.println();
-    // }
-    // generate next three structures
-    // rightmost sturcture first
-    Pos rightmost(-1, -1), upmost(100, 100);
-    for(int8_t y = structure.y; y <= min(structure.y + structure.height, World::numRows - 1); ++y) {
-        for(int8_t x = structure.x; x <= min(structure.x + structure.width, World::numCols - 1); ++x) {
-            if(this->worldMap[Pos(y, x)].check()) {
-                if(x > rightmost.j) {
-                    rightmost.j = x;
-                    rightmost.i = y;
+            else {
+                leftX = random(minx, maxx); leftY = random(max(structure.y - 2, 0), structure.y);
+                if(upX == -1 && maxy > 0) {   
+                    upX = random(max(structure.x - 2, 0), structure.x); upY = random(miny, maxy);
                 }
             }
         }
-    }
-    for(int8_t y = structure.y; y <= min(structure.y + structure.height, World::numRows - 1); ++y) {
-        for(int8_t x = structure.x; x <= min(structure.x + structure.width, World::numCols - 1); ++x) {
-            if(this->worldMap[Pos(y, x)].check()) {
-                if(y < upmost.i) {
-                    upmost.j = x;
-                    upmost.i = y;
+        else if(y == upY && x == upX) {
+            Structure structure = this->generateStructure(x, y, x + 1, y + 1, min(x + 8, World::numCols - 1),  max(y - 8, 0));
+            int8_t minx = structure.x + structure.width + this->difficultyStepX * (this->difficulty + 1);
+            int8_t maxx = min(structure.x + structure.width + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1);
+            int8_t maxy = structure.y - this->difficultyStepY * (this->difficulty + 1);
+            int8_t miny = max(structure.y - Player::maxJump / Player::jumpInterval, 0);
+            if(maxy <= 0) {
+                upY = -1; upX = -1;
+            }
+            else {
+                upX = random(min(structure.x - 2, 0), structure.x); upY = random(miny, maxy);
+                if(leftX == -1 && minx < World::numCols) {
+                    leftX = random(minx, maxx); leftY = random(max(structure.y - 2, 0), structure.y);
                 }
             }
         }
-    }    
-    Serial.println("up--------------");
-                for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
-        }
-        Serial.println();
-    }
-    Serial.println("generating");
-    Serial.print(x1); Serial.print(" ");Serial.print(y1);Serial.print(" "); Serial.print(x2);Serial.print(" "); Serial.print(y2);Serial.print(" "); Serial.println();    
-    Serial.println("incepem apel cu");
-    Serial.print(upmost.j); Serial.print(" "); Serial.println(upmost.i - this->difficultyStepY * (this->difficulty + 1)); Serial.print(" ");
-    Serial.print(min(upmost.j + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1)); Serial.print(" ");
-    Serial.print(max(upmost.i - Player::maxJump / Player::jumpInterval, 0)); Serial.println();
-        Serial.println("up--------------");
-                for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
-        }
-        Serial.println();
-    }
-    this->generateFrom(upmost.j, upmost.i - this->difficultyStepY * (this->difficulty + 1) , min(upmost.j + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1), max(upmost.i - Player::maxJump / Player::jumpInterval, 0), num - 1);
 
-    
-    Serial.println("right-------------------------------------------");                for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
+        if(leftX != -1) {
+            x = leftX;
+            y = leftY;
         }
-        Serial.println();
-                }
-    Serial.println("going to the right");
-    Serial.print(upmost.j); Serial.print(" "); Serial.println(upmost.i - this->difficultyStepY * (this->difficulty + 1)); Serial.println();
-    this->generateFrom(rightmost.j + this->difficultyStepX * (this->difficulty + 1), rightmost.i, min(rightmost.j + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1), max(rightmost.i - Player::maxJump / Player::jumpInterval, 0), num - 1);
-
-    // for(int8_t y = structure.y; y <= min(structure.y + structure.height, World::numRows - 1); ++y) {
-    //     for(int8_t x = structure.x; x <= min(structure.x + structure.width, World::numCols - 1); ++x) {
-    //         if(this->worldMap[Pos(y, x)].check()) {
-    //             if(x < leftmost.j) {
-    //                 leftmost.j = x;
-    //                 leftmost.i = y;
-    //             }
-    //         }
-    //     }
-    // }
-    // this->generateFrom(leftmost.j - this->difficultyStepX * (this->difficulty + 1), leftmost.i, leftmost.j - Player::maxJump / Player::moveIntervalInAir, leftmost.i - Player::maxJump / Player::jumpInterval, num - 1);
-
-    // upmost structure next
-    // not viable, have to check ONLY for this structure
-    Serial.println("copy-------------------------------------------");
-                for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
+        else if(upX != -1) {
+            x = upX;
+            y = upY;
         }
-        Serial.println();
     }
-    Serial.println();
-    for(int8_t y = structure.y; y <= min(structure.y + structure.height, World::numRows - 1); ++y) {
-        for(int8_t x = structure.x; x <= min(structure.x + structure.width, World::numCols - 1); ++x) {
-            if(this->worldMap[Pos(y, x)].check()) {
-                if(y < upmost.i) {
-                    upmost.j = x;
-                    upmost.i = y;
-                }
-            }
-        }
-    }}
+}
 
 /**
  * @brief 
