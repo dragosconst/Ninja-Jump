@@ -67,6 +67,8 @@ void FakeMatrix::setByte(const Pos& pos, const byte& b) {
 
 FakeBit FakeMatrix::operator[](const Pos& pos) {
     int i = pos.i, j = pos.j;
+    if(i < 0 || j < 0) 
+        return FakeBit(nullptr, 0);
     int index = i * this->numCols + j / 8;
     // return this->matrix[index] & (1 << ( 7 - (j % 8)));
     return FakeBit(this->matrix + index, (7 - (j % 8)));

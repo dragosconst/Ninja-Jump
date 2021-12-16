@@ -93,7 +93,7 @@ Menu* createWelcomeMenu() {
   const char* _welcomeText = "   Welcome! \n\0";
   MenuOption* _welcomeMessage = new MenuOption(_welcomeText, createMainMenu);
   grOpts.push_back(_welcomeMessage);
- return menu;
+  return menu;
 }
 
 Menu* createMainMenu() {
@@ -244,8 +244,8 @@ void setup() {
   
   difficulty = RWHelper::readDiff();
   player = Player(3, 10, 2, 14, &world);
-  world = World(&lc, &player, difficulty);
   randomSeed(analogRead(0));
+  world = World(&lc, &player, difficulty);
   currentMenu = createWelcomeMenu();
   currentState = BrowsingMenus;
 }
