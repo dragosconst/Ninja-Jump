@@ -3,8 +3,10 @@
 
 #include "Arduino.h"
 #include "World.h"
+#include "FakeMatrix.h"
 
 class World;
+
 
 class Player {
 private:
@@ -42,6 +44,7 @@ public:
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
     static bool isInRange(byte x, byte y, byte sx, byte sy);
+    void setPosition(Pos pos) { this->x = pos.j; this->y = pos.i;}
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }

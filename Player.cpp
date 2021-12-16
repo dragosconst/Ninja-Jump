@@ -31,13 +31,23 @@ void Player::move(int xVal, int yVal) {
             this->passedPlatform = false;
     }
     if(xVal == 1) {
-        if(x < 7 && !this->world->worldMap[Pos(this->y, this->x + 1)].check())
+        if(x < World::numCols - 1 && !this->world->worldMap[Pos(this->y, this->x + 1)].check()) {
             this->x += 1;
+            Serial.println("moving to the right");
+        }
+        else {
+            Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
+        }
         this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
     else if(xVal == -1) {
-        if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check())
+        if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check()) {
             this->x -= 1;
+            Serial.println("moving to the left");
+        }
+        else {
+            // Serial.println(!this->world->worldMap[Pos(this->y, this->x - 1)].check());
+        }
         this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
 }

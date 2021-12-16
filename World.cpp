@@ -71,6 +71,14 @@ difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 
     this->roomsState = FakeMatrix(World::numRows / 8, 1);
     this->emptyColumnsLeft = this->emptyColumnsRight = this->emptyLinesDown = this->emptyLinesUp = 0;
     this->generateFrom(0, World::numRows - 1, 8, World::numRows - 9, -1);
+    for(byte i = 15; i >= 9; --i) {
+        for(byte j = 8; j < 16; ++j) {
+            if(this->worldMap[Pos(i, j)].check()) {
+                this->player->setPosition(Pos(i - 1, j));
+            }
+        }
+    }
+
     for(int i = 0; i < World::numRows; ++i) {
         for(int j = 0; j < World::numCols; ++j) {
             Serial.print(this->worldMap[Pos(i, j)].check() != 0);
