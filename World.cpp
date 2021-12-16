@@ -70,6 +70,14 @@ difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 
     this->worldMap = FakeMatrix(World::numRows, World::numCols / 8);
     this->roomsState = FakeMatrix(World::numRows / 8, 1);
     this->emptyColumnsLeft = this->emptyColumnsRight = this->emptyLinesDown = this->emptyLinesUp = 0;
+    this->generateFrom(0, World::numRows - 1, 8, World::numRows - 9, -1);
+    for(int i = 0; i < World::numRows; ++i) {
+        for(int j = 0; j < World::numCols; ++j) {
+            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
+            Serial.print(" ");
+        }
+        Serial.println();
+    }
     // for(int i = 0; i < 16; ++i) {
     //     this->worldMap.setByte(Pos(i, 0), worldMap[i]);
     //     if(this->worldMap[Pos(i, 1)].check()) {
@@ -146,7 +154,7 @@ void World::scrollRight() {
 }
 
 
-void World::generateLine(byte i, byte jst, byte jend, byte anchor) {
+void World::generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor) {
     // int8_t lastContJ = -1, firstContJ = -1; // last and first places it can stretch to
     // for(int j = anchor; j < jend; ++j) {
     //     if(this->worldMap[Pos(i, j)].check()) {
@@ -167,8 +175,8 @@ void World::generateLine(byte i, byte jst, byte jend, byte anchor) {
     //     firstContJ = jst;
     // }
 
-    byte where = random(jst, jend - 1);
-    for(byte j = min(where, anchor); j <= max(where, anchor); ++j) {
+    int8_t where = random(jst, jend - 1);
+    for(int8_t j = min(where, anchor); j <= max(where, anchor); ++j) {
         this->worldMap[Pos(i, j)] = 1;
     }
 }
@@ -176,9 +184,9 @@ void World::generateLine(byte i, byte jst, byte jend, byte anchor) {
 // pointy lines look something like:
 //*___*
 //_***_
-void World::generatePointyLine(byte i, byte jst, byte jend, byte anchor) {
-    byte where = random(jst, jend - 1); 
-    for(byte j = min(where, anchor); j <= max(where, anchor); ++j) {
+void World::generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor) {
+    int8_t where = random(jst, jend - 1); 
+    for(int8_t j = min(where, anchor); j <= max(where, anchor); ++j) {
         if(j == min(where, anchor) || j == max(where, anchor)) {
             this->worldMap[Pos(i - 1, j)] = 1;
         }
@@ -189,8 +197,8 @@ void World::generatePointyLine(byte i, byte jst, byte jend, byte anchor) {
 }
 
 // generate a structure in given params
-void World::generateStructure(byte x_first, byte y_first, byte x_last, byte y_last, byte xMax, byte yMax) {
-    byte x = random(x_first, x_last), y = random(y_first, y_last); // anchor point of structure
+void World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
+    byte x = random(x_first, x_last - 1), y = random(y_first, y_last - 1); // anchor point of structure
     if(y == 0) {
         this->generateLine(y, x_first, xMax, x);
     }
@@ -200,20 +208,18 @@ void World::generateStructure(byte x_first, byte y_first, byte x_last, byte y_la
             this->generateLine(y, x_first, xMax, x);
         }
         else if(dice == GEN_POINTY) {
-            this->generatePointyLine(y, x_first, x, x);
+            this->generatePointyLine(y, x_first, xMax, x);
         }
     }
 
 }
 
 // check if this position would be too close to other structures
-bool World::tooClose(byte i, byte j) {
+bool World::tooClose(int8_t i, int8_t j) {
     for(int y = World::numRows - 1; y >= 0; --y) {
         for(int x = 0; x < World::numCols; ++x) {
             if(this->worldMap[Pos(y, x)].check() && !(player->getX() == x && player->getY() == y)) {
-                if(y + this->difficultyStepY * (this->difficulty + 1) > i)
-                    return true;
-                if(x + this->difficultyStepX * (this->difficulty + 1) > j)
+                if(y >= i && y - this->difficultyStepY * (this->difficulty + 1) < i && x <= j && x + this->difficultyStepX * (this->difficulty + 1) > j)
                     return true;
             }
         }
@@ -242,6 +248,57 @@ Pos World::getBestRange(byte i, byte j) {
     }
 }
 
+
+// if num is a negative number, this will generate all possible positions
+void World::generateFrom(int8_t x1, int8_t y1, int8_t x2, int8_t y2, int8_t num) {
+    if(x1 < 0 || x1 >=  World::numCols || y1 < 0 || y2 >= World::numCols) {
+        return;
+    }
+    if(!num)
+        return;
+    if(this->tooClose(x1, y1) || this->tooClose(x2, y2)) { // during other generating calls, the map was populated in such a way that the current position isn't valid anymore
+        return;
+    }
+    // generate this structure
+    this->generateStructure(x1, y1, x2, y2, min(x1 + 8, World::numCols - 1), max(y1 - 8, 0));
+    // Serial.println("------------------------------------------");
+    // Serial.println("stuff");
+    // for(int i = 0; i < World::numRows; ++i) {
+    //     for(int j = 0; j < World::numCols; ++j) {
+    //         Serial.print(this->worldMap[Pos(i, j)].check() != 0);
+    //         Serial.print(" ");
+    //     }
+    //     Serial.println();
+    // }
+    // generate next two structures
+    // rightmost sturcture first
+    Pos rightmost(0, 0), upmost(100, 100);
+    for(int8_t y = y1; y >= max(y1 - 8, 0); --y) {
+        for(int8_t x = x1; x <= min(x1 + 8, World::numCols - 1); ++x) {
+            if(this->worldMap[Pos(y, x)].check()) {
+                if(x > rightmost.j) {
+                    rightmost.j = x;
+                    rightmost.i = y;
+                }
+            }
+        }
+    }
+    this->generateFrom(rightmost.j + this->difficultyStepX * (this->difficulty + 1), rightmost.i, rightmost.j + Player::maxJump / Player::moveIntervalInAir, rightmost.i - Player::maxJump / Player::jumpInterval, num - 1);
+
+    // upmost structure next
+    for(int8_t y = y1; y >= max(y1 - 8, 0); --y) {
+        for(int8_t x = x1; x <= min(x1 + 8, World::numCols - 1); ++x) {
+            if(this->worldMap[Pos(y, x)].check()) {
+                if(y < upmost.i) {
+                    upmost.j = x;
+                    upmost.i = y;
+                }
+            }
+        }
+    }
+    this->generateFrom(upmost.j, upmost.i - this->difficultyStepY * (this->difficulty + 1) , upmost.j + Player::maxJump / Player::moveIntervalInAir, rightmost.i - Player::maxJump / Player::jumpInterval, num - 1);
+}
+
 /**
  * @brief 
  * This method will handle most procedural generation. When filling a room, multiple things will be considered, like difficulty, whether
@@ -258,29 +315,29 @@ Pos World::getBestRange(byte i, byte j) {
  * @param i 
  * @param j 
  */
-void World::fillRoom(byte i, byte j) {
-    int i_dist = 8, j_dist = 8; // how far we should generate
-    if(j < World::numCols / 8 - 1 && !this->roomsState[Pos(i, j + 1)].check()) {
-        j_dist += 8;
-    }
+// void World::fillRoom(byte i, byte j) {
+//     int i_dist = 8, j_dist = 8; // how far we should generate
+//     if(j < World::numCols / 8 - 1 && !this->roomsState[Pos(i, j + 1)].check()) {
+//         j_dist += 8;
+//     }
 
-    for(byte y = i + i_dist - 1; y <= i; --y) {
-        if(y == World::numRows - 1) {
-            // this case is different because we don't have to look downwards to get an idea of what we must generate
-            for(byte x = j; x < j + j_dist; ++j) {
-                if(x == 0) {
-                    // leftmost, downward point should always be a platform
-                    this->generateLine(y, j, j + j_dist, x);
-                }
-                else {
-                    if(!this->tooClose(y, x)) {
+//     for(byte y = i + i_dist - 1; y <= i; --y) {
+//         if(y == World::numRows - 1) {
+//             // this case is different because we don't have to look downwards to get an idea of what we must generate
+//             for(byte x = j; x < j + j_dist; ++j) {
+//                 if(x == 0) {
+//                     // leftmost, downward point should always be a platform
+//                     this->generateLine(y, j, j + j_dist, x);
+//                 }
+//                 else {
+//                     if(!this->tooClose(y, x)) {
                         
-                    }
-                }
-            }
-        }
-    }
-}
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void World::drawOnMatrix() {
     int row = 0;
