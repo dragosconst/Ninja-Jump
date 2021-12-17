@@ -70,7 +70,9 @@ difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 
     this->worldMap = FakeMatrix(World::numRows, World::numCols / 8);
     this->roomsState = FakeMatrix(World::numRows / 8, 1);
     this->emptyColumnsLeft = this->emptyColumnsRight = this->emptyLinesDown = this->emptyLinesUp = 0;
-    this->generateFrom(0, World::numRows - 1, 8, World::numRows - 9, -1);
+    this->generateFromLast(true);
+    this->generateFromLast();
+    this->generateFromLast();
     for(byte i = 15; i >= 9; --i) {
         for(byte j = 8; j < 16; ++j) {
             if(this->worldMap[Pos(i, j)].check()) {
@@ -305,65 +307,139 @@ Structure World::getBestRange(byte i, byte j) {
     }
 }
 
+// get range from highest point to the left
+Structure World::getBestRange(Structure structure) {
+    int8_t topy = 100, leftx = 100, height, width;
+    for(int8_t y = structure.y; y <= structure.y + structure.height; ++y) {
+        for(int8_t x = structure.x; x <= structure.x + structure.width; ++x) {
+            if(this->worldMap[Pos(y, x)].check() && !(player->getX() == x && player->getY() == y)) {
 
-// if num is a negative number, this will generate all possible positions
-void World::generateFrom(int8_t x1, int8_t y1, int8_t x2, int8_t y2, int8_t num) {
-    int8_t upX = 0, upY = 0, leftX = 0, leftY = 0;
-    int8_t y = y1, x = x1;
-    while(upX != -1 || leftX != -1) {
-        Serial.print("upx is "); Serial.println(upX);
-        Serial.print("upy is "); Serial.println(upY);
-        Serial.print("leftx is "); Serial.println(leftX);
-        Serial.print("lefty is "); Serial.println(leftY);
-        if(y == World::numRows - 1 && x == 0) {
-            Structure structure = this->generateStructure(x, max(y - 8, 0), min(x + 8, World::numCols - 1), y + 1, min(x + 8, World::numCols - 1), max(y - 8, 0));
-            int8_t minx = structure.x + structure.width + this->difficultyStepX * (this->difficulty + 1);
-            int8_t maxx = structure.x + structure.width + Player::maxJump / Player::moveIntervalInAir;
-            int8_t maxy = structure.y - this->difficultyStepY * (this->difficulty + 1);
-            int8_t miny = structure.y - Player::maxJump / Player::jumpInterval;
-            leftX = random(minx, maxx); leftY = random(max(structure.y - 2, 0), structure.y);
-            upX = random(max(structure.x - 2, 0), structure.x); upY = random(miny, maxy);
-        }
-        else if(y == leftY && x == leftX) {
-            Structure structure = this->generateStructure(x, y, x + 1, y + 1, min(x + 8, World::numCols - 1),  max(y - 8, 0));
-            int8_t minx = structure.x + structure.width + this->difficultyStepX * (this->difficulty + 1);
-            int8_t maxx = min(structure.x + structure.width + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1);
-            int8_t maxy = structure.y - this->difficultyStepY * (this->difficulty + 1);
-            int8_t miny = max(structure.y - Player::maxJump / Player::jumpInterval, 0);
-            if(minx >= World::numCols) {
-                leftX = -1; leftY = -1;
-            }
-            else {
-                leftX = random(minx, maxx); leftY = random(max(structure.y - 2, 0), structure.y);
-                if(upX == -1 && maxy > 0) {   
-                    upX = random(max(structure.x - 2, 0), structure.x); upY = random(miny, maxy);
+                if(topy > max(y - Player::maxJump / Player::jumpInterval, 0)) {
+                    topy = max(y - Player::maxJump / Player::jumpInterval, 0);
+                    height = y - topy;
+                    leftx = max(x - Player::maxJump / Player::moveIntervalInAir, 0);
+                    width = min(2 * Player::maxJump / Player::moveIntervalInAir, World::numCols - 1 - leftx);
                 }
             }
         }
-        else if(y == upY && x == upX) {
-            Structure structure = this->generateStructure(x, y, x + 1, y + 1, min(x + 8, World::numCols - 1),  max(y - 8, 0));
-            int8_t minx = structure.x + structure.width + this->difficultyStepX * (this->difficulty + 1);
-            int8_t maxx = min(structure.x + structure.width + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1);
-            int8_t maxy = structure.y - this->difficultyStepY * (this->difficulty + 1);
-            int8_t miny = max(structure.y - Player::maxJump / Player::jumpInterval, 0);
-            if(maxy <= 0) {
-                upY = -1; upX = -1;
+    }
+    return Structure(leftx, topy, width, height);
+
+}
+
+Structure World::getMinDiff(Structure structure) {
+    int8_t topy = 100, leftx = 100, height, width;
+    for(int8_t y = structure.y; y <= structure.y + structure.height; ++y) {
+        for(int8_t x = structure.x; x <= structure.x + structure.width; ++x) {
+            if(this->worldMap[Pos(y, x)].check() && !(player->getX() == x && player->getY() == y)) {
+                if(topy > max(y - this->difficultyStepY * this->difficulty, 0)) {
+                    topy = max(y - this->difficultyStepY * this->difficulty, 0);
+                    height = y - topy;
+                    leftx = max(x -this->difficultyStepX * this->difficulty, 0);
+                    width = min(2 * this->difficultyStepX * this->difficulty, World::numCols - 1 - leftx);
+                }                
             }
-            else {
-                upX = random(min(structure.x - 2, 0), structure.x); upY = random(miny, maxy);
-                if(leftX == -1 && minx < World::numCols) {
-                    leftX = random(minx, maxx); leftY = random(max(structure.y - 2, 0), structure.y);
-                }
-            }
+        }
+    }    
+    return Structure(leftx, topy, width, height);
+}
+
+// get total jump range from a point
+Structure World::getTotalRange(int8_t y, int8_t x) {
+    int8_t left = max((x - Player::maxJump / Player::moveIntervalInAir), 0);
+    int8_t right = min(x + Player::maxJump / Player::moveIntervalInAir, World::numCols - 1);
+    int8_t up = max(y - Player::maxJump / Player::jumpInterval, 0);
+    return Structure(left, up, right - left, y - up);
+}
+
+// get area which is reachable from last generated structure, but not from second last structure
+// it's going to be a rought estimate, since we need a square
+Structure World::withoutIntersection(Structure s1, Structure s2) {
+    if(s1.x <= s2.x) {
+        // look to the left
+        int8_t x = s1.x, y = s1.y, w = 0, hw = 0, wh = 0, h = 0;
+        /**
+         * @brief 
+         * Since the other area of action is a square too, to find the optimal range without intersection we need to first try to make
+         * the width as big as possible, and try to make a rect with that, and subsequently do the same thing with the height. In the end,
+         * we'll be left with the biggest possible rectangle.
+         */
+        if(s1.y < s2.y) {
+            w = s1.width;
+            wh = min(s2.y - s1.y - 1, s1.height);
+        }
+        else {
+            w = min(s2.x - s1.x - 1, s1.width);
+            wh = s1.height;
         }
 
-        if(leftX != -1) {
-            x = leftX;
-            y = leftY;
+        if(s1.x < s2.x) {
+            h = s1.height;
+            hw = min(s2.x - s1.x - 1, s1.width);
         }
-        else if(upX != -1) {
-            x = upX;
-            y = upY;
+        else {
+            h = min(s2.y - s1.y - 1, s1.height);
+            hw = s1.width;
+        }
+
+        if(w * wh >= h * hw) {
+            return Structure(x, y, w, wh);
+        }
+        return Structure(x, y, hw, h);
+    }
+    else {
+        // look to the right
+        int8_t x = s1.x + s1.width, y = s1.y, w = 0, hw = 0, wh = 0, h = 0;
+        if(s1.y < s2.y) {
+            w = s1.width;
+            wh = min(s2.y - s1.y - 1, s1.height);
+        }
+        else {
+            w = min(s2.x - s1.x - 1, s1.width);
+            wh = s1.height;
+        }
+
+        if(s1.x < s2.x) {
+            h = s1.height;
+            hw = min(s2.x - s1.x - 1, s1.width);
+        }
+        else {
+            h = min(s2.y - s1.y - 1, s1.height);
+            hw = s1.width;
+        }
+
+        if(w * wh >= h * hw) {
+            return Structure(x - w, y, w, wh);
+        }
+        return Structure(x - hw, y, hw, h);
+    }
+}
+
+void World::generateFromLast(bool first = false) {
+    if(first) {
+        this->secondLast = Structure(-1, -1, -1, -1);
+        this->last = this->generateStructure(8, 8, 16, 16, 16, 16);
+        this->player->setPosition(Pos(this->last.y - 1, this->last.x));
+    }
+    else {
+        if(this->secondLast.x == -1) {
+            // no second last yet, can generate anywhere within range for the first structure
+            this->secondLast = this->last;
+            Serial.print("last is: x = "); Serial.print(last.x); Serial.print(" y = "); Serial.print(last.y); Serial.print(" height = "); Serial.print(last.height); Serial.print(" width = "); Serial.println(last.width);
+            Structure range = this->getBestRange(this->last);
+            range = this->withoutIntersection(range, this->getMinDiff(this->last));
+            Serial.print("range is: x = "); Serial.print(range.x); Serial.print(" y = "); Serial.print(range.y); Serial.print(" height = "); Serial.print(range.height); Serial.print(" width = "); Serial.println(range.width);
+            this->last = this->generateStructure(range.x, range.y, min(range.x + range.width + 1, World::numCols - 1), 
+            max(range.y - range.height - 1, 0), min(range.x + range.width + 1 + 8, World::numCols - 1), max(range.y - range.height - 1 - 8, 0));
+        }
+        else {
+            Structure rangeLast = this->getBestRange(this->last);
+            Structure rangeSecondLast = this->getBestRange(this->secondLast);
+            Structure range = this->withoutIntersection(rangeLast, rangeSecondLast);
+            range = this->withoutIntersection(range, this->getMinDiff(this->last));
+            this->secondLast = this->last;
+            this->last = this->generateStructure(range.x, range.y, min(range.x + range.width + 1, World::numCols - 1), 
+            max(range.y - range.height - 1, 0), min(range.x + range.width + 1 + 8, World::numCols - 1), max(range.y - range.height - 1 - 8, 0));
         }
     }
 }
