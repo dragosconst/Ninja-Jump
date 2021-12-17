@@ -1,6 +1,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#define FALL_DISTANCE 10
+
 #include "Arduino.h"
 #include "World.h"
 #include "FakeMatrix.h"
@@ -18,6 +20,7 @@ private:
     bool passedPlatform; // for restoring platform integrity after jumping through them
     int lives;
     int heightMax, height;
+    byte fallDistance = 0;
 public:
     static const int moveInterval; // interval at which to move
     static const int moveIntervalInAir;
@@ -46,11 +49,13 @@ public:
     static bool isInRange(byte x, byte y, byte sx, byte sy);
     void setPosition(Pos pos) { this->x = pos.j; this->y = pos.i;}
     void setWorld(World* world) { this->world = world;}
-    void setPassedPlatform() { this->passedPlatform = false;}
+    void setPassedPlatform(bool val) { this->passedPlatform = val;}
+    void setLastPos(Pos pos) { this->lx = pos.j; this->ly = pos.i;}
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }
     Pos getPos() const { return Pos(this->y, this->x);}
+    Pos getLastPos() const { return Pos(this->ly, this->lx);}
     bool isJumping() const { return this->jumping; }
     bool isFalling() const { return !this->onStableGround() && !this->jumping;}
     bool jumpedThroughPlatform() const { return this->passedPlatform;}

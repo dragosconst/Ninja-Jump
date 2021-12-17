@@ -13,7 +13,7 @@ unsigned long Player::lastMovedJump = 0;
 unsigned long Player::lastFell = 0;
 
 Player::Player(int lives, int height, int x, int y, World* world) : lives(lives), height(height), x(x), y(y), lx(x), ly(y), world(world), jumping(false)
-, passedPlatform(false), maxY(10000), heightMax(height) { }
+, passedPlatform(false), maxY(10000), heightMax(height), fallDistance(0) { }
 
 void Player::decreaseHealth() {
     this->lives--;
@@ -24,13 +24,11 @@ void Player::increaseHeight(int amount) {
 }
 
 void Player::move(int xVal, int yVal) {
-    if(xVal) {
-    }
     if(xVal == 1) {
         if(x < World::numCols - 1 && !this->world->worldMap[Pos(this->y, this->x + 1)].check()) {
             // this->x += 1;
             this->world->scrollRight();
-            // Serial.println("moving to the right");
+            Serial.println("moving to the right");
         }
         else {
             Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
@@ -41,12 +39,18 @@ void Player::move(int xVal, int yVal) {
         if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check()) {
             // this->x -= 1;
             this->world->scrollLeft();
-            // Serial.println("moving to the left");
+            Serial.println("moving to the left");
         }
         else {
             // Serial.println(!this->world->worldMap[Pos(this->y, this->x - 1)].check());
         }
         this->world->worldMap[Pos(this->y, this->x)] = 1;
+    }
+    if(xVal) {
+        if(!this->isJumping() && this->onStableGround()) {
+            this->lx = this->x;
+            this->ly = this->y;
+        }
     }
 }
 
@@ -65,18 +69,23 @@ bool Player::isInRange(byte x,  byte y, byte sx, byte sy) {
     }
 }
 
-bool Player::onStableGround() const { if(y == 15) return false; return this->world->worldMap[Pos(y + 1, x)].check();}
+bool Player::onStableGround() const { return this->world->worldMap[Pos(y + 1, x)].check();}
 
 void Player::fall() {
-    if(this->onStableGround())
+    if(this->onStableGround()) {
+        this->fallDistance = 0;
         return;
+    }
     if(this->isJumping())
         return;
     this->world->scrollDown();
     this->height -= 10;
+    this->fallDistance += 1;
     // this->y += 1;
-    if(this->y > 15) {
+    if(this->fallDistance == FALL_DISTANCE) {
         this->lives -= 1;
+        this->fallDistance = 0;
+        this->world->recenter(Pos(this->ly, this->lx));
         this->x = this->lx;
         this->y = this->ly;
     }
@@ -86,10 +95,6 @@ void Player::fall() {
 void Player::jump() {
     if(this->y == 0)
         return;
-    if(!this->passedPlatform)
-        this->world->worldMap[Pos(this->y, this->x)] = 0;
-    else
-        this->passedPlatform = false;
     this->world->scrollUp();
     this->height += 10;
     this->heightMax = max(this->height, this->heightMax);

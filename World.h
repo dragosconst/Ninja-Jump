@@ -7,6 +7,8 @@
 #define GEN_MOVING 3
 #define GEN_DISAPP 4
 #define GEN_CANON 5
+#define PLAYER_X 12
+#define PLAYER_Y 16
 
 #include "Arduino.h"
 #include "Player.h"
@@ -51,6 +53,7 @@ private:
     void scrollLeft();
     void scrollRight();
     void checkCamera();
+    void recenter(Pos pos);
 public:
     World();
     World(LedControl* lc, Player* player, byte difficulty);
