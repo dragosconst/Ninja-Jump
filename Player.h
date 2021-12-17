@@ -17,7 +17,7 @@ private:
     bool jumping;
     bool passedPlatform; // for restoring platform integrity after jumping through them
     int lives;
-    int height;
+    int heightMax, height;
 public:
     static const int moveInterval; // interval at which to move
     static const int moveIntervalInAir;
@@ -45,17 +45,21 @@ public:
     void clear(int lives, int height, int x, int y);
     static bool isInRange(byte x, byte y, byte sx, byte sy);
     void setPosition(Pos pos) { this->x = pos.j; this->y = pos.i;}
+    void setWorld(World* world) { this->world = world;}
+    void setPassedPlatform() { this->passedPlatform = false;}
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }
+    Pos getPos() const { return Pos(this->y, this->x);}
     bool isJumping() const { return this->jumping; }
     bool isFalling() const { return !this->onStableGround() && !this->jumping;}
+    bool jumpedThroughPlatform() const { return this->passedPlatform;}
     int getLives() const { return this->lives;}
     int getHeight() const { return this->height;}
     static int getYRange() { return Player::maxJump / Player::jumpInterval;}
     static int getXRange() { return Player::maxJump/Player::moveIntervalInAir;}
     int* getLivesAddr()  { return &this->lives;}
-    int* getHeightAddr() { return &this->height; }
+    int* getHeightAddr() { return &this->heightMax; }
 };
 
 #endif

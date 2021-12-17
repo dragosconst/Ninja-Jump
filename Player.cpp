@@ -13,7 +13,7 @@ unsigned long Player::lastMovedJump = 0;
 unsigned long Player::lastFell = 0;
 
 Player::Player(int lives, int height, int x, int y, World* world) : lives(lives), height(height), x(x), y(y), lx(x), ly(y), world(world), jumping(false)
-, passedPlatform(false), maxY(10000) { }
+, passedPlatform(false), maxY(10000), heightMax(height) { }
 
 void Player::decreaseHealth() {
     this->lives--;
@@ -25,15 +25,12 @@ void Player::increaseHeight(int amount) {
 
 void Player::move(int xVal, int yVal) {
     if(xVal) {
-        if(!this->passedPlatform)
-            this->world->worldMap[Pos(this->y, this->x)] = 0;
-        else
-            this->passedPlatform = false;
     }
     if(xVal == 1) {
         if(x < World::numCols - 1 && !this->world->worldMap[Pos(this->y, this->x + 1)].check()) {
-            this->x += 1;
-            Serial.println("moving to the right");
+            // this->x += 1;
+            this->world->scrollRight();
+            // Serial.println("moving to the right");
         }
         else {
             Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
@@ -42,8 +39,9 @@ void Player::move(int xVal, int yVal) {
     }
     else if(xVal == -1) {
         if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check()) {
-            this->x -= 1;
-            Serial.println("moving to the left");
+            // this->x -= 1;
+            this->world->scrollLeft();
+            // Serial.println("moving to the left");
         }
         else {
             // Serial.println(!this->world->worldMap[Pos(this->y, this->x - 1)].check());
@@ -74,11 +72,9 @@ void Player::fall() {
         return;
     if(this->isJumping())
         return;
-    if(!this->passedPlatform)
-        this->world->worldMap[Pos(this->y, this->x)] = 0;
-    else
-        this->passedPlatform = false;
-    this->y += 1;
+    this->world->scrollDown();
+    this->height -= 10;
+    // this->y += 1;
     if(this->y > 15) {
         this->lives -= 1;
         this->x = this->lx;
@@ -94,11 +90,10 @@ void Player::jump() {
         this->world->worldMap[Pos(this->y, this->x)] = 0;
     else
         this->passedPlatform = false;
-    this->y -= 1;
-    if(this->y < this->maxY) {
-        this->maxY = this->y;
-        this->height += 10;
-    }
+    this->world->scrollUp();
+    this->height += 10;
+    this->heightMax = max(this->height, this->heightMax);
+    // this->y -= 1;
     if(this->world->worldMap[Pos(this->y, this->x)].check())
         this->passedPlatform = true;
     this->world->worldMap[Pos(this->y, this->x)] = 1;
@@ -109,6 +104,7 @@ void Player::jump() {
 void Player::clear(int lives, int height, int x, int y) {
     this->lives = lives;
     this->height = height;
+    this->heightMax = height;
     this->x = x;
     this->y = y;
 }

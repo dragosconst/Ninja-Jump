@@ -50,6 +50,7 @@ private:
     void scrollDown();
     void scrollLeft();
     void scrollRight();
+    void checkCamera();
 public:
     World();
     World(LedControl* lc, Player* player, byte difficulty);
