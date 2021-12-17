@@ -206,16 +206,16 @@ void World::scrollLeft() {
 // check if the last structure is now in the panning camera, in which case generate a new last structure
 void World::checkCamera() {
     if(this->last.x >= 8 && this->last.x < 16 && this->last.y >= 12 && this->last.y < 20) {
-        Serial.println("huh");
-        Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.print(" "); Serial.print(this->last.height); Serial.print(" "); Serial.print(this->last.width); Serial.println();
-        Serial.print(this->secondLast.x); Serial.print(" "); Serial.print(this->secondLast.y); Serial.print(" "); Serial.print(this->secondLast.height); Serial.print(" "); Serial.print(this->secondLast.width); Serial.println();
-            for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
-        }
-        Serial.println();
-    }
+    //     Serial.println("huh");
+    //     Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.print(" "); Serial.print(this->last.height); Serial.print(" "); Serial.print(this->last.width); Serial.println();
+    //     Serial.print(this->secondLast.x); Serial.print(" "); Serial.print(this->secondLast.y); Serial.print(" "); Serial.print(this->secondLast.height); Serial.print(" "); Serial.print(this->secondLast.width); Serial.println();
+    //         for(int i = 0; i < World::numRows; ++i) {
+    //     for(int j = 0; j < World::numCols; ++j) {
+    //         Serial.print(this->worldMap[Pos(i, j)].check() != 0);
+    //         Serial.print(" ");
+    //     }
+    //     Serial.println();
+    // }
         this->generateFromLast();
     }
 }
@@ -224,11 +224,11 @@ void World::checkCamera() {
 void World::recenter(Pos pos) {
     Serial.print(pos.i); Serial.print(" "); Serial.println(pos.j);
     while(pos.j < PLAYER_X) {
-        this->scrollRight();
+        this->scrollLeft();
         pos.j += 1;
     }
     while(pos.j > PLAYER_X) {
-        this->scrollLeft();
+        this->scrollRight();
         pos.j -= 1;
     }
     while(pos.i < PLAYER_Y) {
@@ -269,8 +269,8 @@ Structure World::generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t an
 // generate a structure in given params
 Structure World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
     byte x = random(x_first, x_last - 1), y = random(y_first, y_last - 1); // anchor point of structure
-    Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
-    Serial.print("y is "); Serial.println(y);
+    // Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
+    // Serial.print("y is "); Serial.println(y);
     if(y == World::numRows - 1) {
         return this->generateLine(y, x_first, xMax, x);
     }
@@ -454,11 +454,11 @@ void World::generateFromLast(bool first = false) {
         }
         else {
             Structure rangeLast = this->getBestRange(this->last);
-            Serial.print("range last is: x = "); Serial.print(rangeLast.x); Serial.print(" y = "); Serial.print(rangeLast.y); Serial.print(" height = "); Serial.print(rangeLast.height); Serial.print(" width = "); Serial.println(rangeLast.width);
+            // Serial.print("range last is: x = "); Serial.print(rangeLast.x); Serial.print(" y = "); Serial.print(rangeLast.y); Serial.print(" height = "); Serial.print(rangeLast.height); Serial.print(" width = "); Serial.println(rangeLast.width);
             Structure rangeSecondLast = this->getBestRange(this->secondLast);
-            Serial.print("range second last is: x = "); Serial.print(rangeSecondLast.x); Serial.print(" y = "); Serial.print(rangeSecondLast.y); Serial.print(" height = "); Serial.print(rangeSecondLast.height); Serial.print(" width = "); Serial.println(rangeSecondLast.width);
+            // Serial.print("range second last is: x = "); Serial.print(rangeSecondLast.x); Serial.print(" y = "); Serial.print(rangeSecondLast.y); Serial.print(" height = "); Serial.print(rangeSecondLast.height); Serial.print(" width = "); Serial.println(rangeSecondLast.width);
             Structure range = this->withoutIntersection(rangeLast, rangeSecondLast);                        
-            Serial.print("range is: x = "); Serial.print(range.x); Serial.print(" y = "); Serial.print(range.y); Serial.print(" height = "); Serial.print(range.height); Serial.print(" width = "); Serial.println(range.width);
+            // Serial.print("range is: x = "); Serial.print(range.x); Serial.print(" y = "); Serial.print(range.y); Serial.print(" height = "); Serial.print(range.height); Serial.print(" width = "); Serial.println(range.width);
             range = this->withoutIntersection(range, this->getMinDiff(this->last));
             this->secondLast = this->last;
             this->last = this->generateStructure(range.x, range.y, min(range.x + range.width + 1, World::numCols - 1), 

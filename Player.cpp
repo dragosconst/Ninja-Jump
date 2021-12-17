@@ -28,7 +28,7 @@ void Player::move(int xVal, int yVal) {
         if(x < World::numCols - 1 && !this->world->worldMap[Pos(this->y, this->x + 1)].check()) {
             // this->x += 1;
             this->world->scrollRight();
-            Serial.println("moving to the right");
+            // Serial.println("moving to the right");
         }
         else {
             Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
@@ -39,7 +39,7 @@ void Player::move(int xVal, int yVal) {
         if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check()) {
             // this->x -= 1;
             this->world->scrollLeft();
-            Serial.println("moving to the left");
+            // Serial.println("moving to the left");
         }
         else {
             // Serial.println(!this->world->worldMap[Pos(this->y, this->x - 1)].check());
@@ -85,6 +85,7 @@ void Player::fall() {
     if(this->fallDistance == FALL_DISTANCE) {
         this->lives -= 1;
         this->fallDistance = 0;
+        this->height += FALL_DISTANCE * 10;
         this->world->recenter(Pos(this->ly, this->lx));
         this->x = this->lx;
         this->y = this->ly;
