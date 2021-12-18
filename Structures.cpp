@@ -13,8 +13,8 @@ Pagoda::Pagoda(int8_t ey, int8_t ex) : BaseStructure(ey, ex, PagodaStruct) {
     this->left = this->ex - this->width + 1;
 }
 
-Structure Pagoda::getBoundingBox() {
-    return Structure(this->left, this->top, this->width - 1, this->height - 1);
+BoundingBox Pagoda::getBoundingBox() {
+    return BoundingBox(this->left, this->top, this->width - 1, this->height - 1);
 }
 
 void Pagoda::draw(World* world) {
@@ -35,4 +35,61 @@ void Pagoda::draw(World* world) {
         Serial.println();
         row++;
     }
+}
+
+const int MovingPlatform::moveInterval = 450; // interval at which a platform moves
+
+// ex + 2 because otherwise it's barely seeable on the screen
+MovingPlatform::MovingPlatform(int8_t ey, int8_t ex) : BaseStructure(ey, ex + 2, MovingPlatformStruct), lastMoved(millis()) {
+    this->length = random(1, MAX_MOV_W);
+    this->crx = this->ex - this->length + 1;
+    this->moveDirection = MOV_LEFT;
+}
+
+void MovingPlatform::draw(World* world) {
+    int8_t y = this->ey;
+    for(int8_t x = this->ex - MOV_RANGE + 1; x <= this->ex; ++x) {
+        if(x >= this->crx && x < this->crx + this->length) {
+            (*world->getMatrix())[Pos(y, x)] = 1;
+        }
+        else {
+            (*world->getMatrix())[Pos(y, x)] = 0;
+        }
+    }
+}
+
+void MovingPlatform::activate(Player* player) {
+    // first, change direction, if necessary
+    if(this->moveDirection == MOV_LEFT && this->crx == this->ex - MOV_RANGE + 1) {
+        this->moveDirection = MOV_RIGHT;
+    }
+    else if(this->moveDirection == MOV_RIGHT && this->crx == this->ex - this->length + 1) {
+        this->moveDirection = MOV_LEFT;
+    }
+
+    if(millis() - this->lastMoved < MovingPlatform::moveInterval)
+        return;
+    this->lastMoved = millis();
+    bool playerOnIt = false;
+    if(!player->isJumping() && player->getPos().i == this->ey - 1 && player->getPos().j >= this->crx && player->getPos().j < this->crx + this->length) {
+        playerOnIt = true;
+    }
+    if(this->moveDirection == MOV_LEFT) {
+        if(playerOnIt) {
+            player->move(-1, 0);
+        }
+        this->crx -= 1;
+        this->draw(player->getWorld());
+    }
+    else {
+        if(playerOnIt) {
+            player->move(1, 0);
+        }
+        this->crx += 1;
+        this->draw(player->getWorld());
+    }
+}
+
+BoundingBox MovingPlatform::getBoundingBox() {
+    return BoundingBox(this->ex - MOV_RANGE + 1, this->ey, MOV_RANGE - 1, 0, true);
 }

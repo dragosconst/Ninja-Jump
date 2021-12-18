@@ -67,6 +67,7 @@ public:
     static int getXRange() { return Player::maxJump/Player::moveIntervalInAir;}
     int* getLivesAddr()  { return &this->lives;}
     int* getHeightAddr() { return &this->heightMax; }
+    World* getWorld() { return this->world;}
 };
 
 #endif

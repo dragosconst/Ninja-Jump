@@ -19,34 +19,37 @@
 class Player;
 struct StructNode;
 
-struct Structure {
+struct BoundingBox {
     int8_t x, y, width, height;
-    Structure() {}
-    Structure(int8_t x, int8_t y, int8_t width, int8_t height) : x(x), y(y), width(width), height(height) {}
+    bool fillOnes; // pretend that the entire structure box contains ones
+    BoundingBox() {}
+    BoundingBox(int8_t x, int8_t y, int8_t width, int8_t height, bool fillOnes = false) : x(x), y(y), width(width), height(height), fillOnes(fillOnes) {}
 };
 
 class World {
 private:
     friend class Player;
+    friend class BaseStructure;
     FakeMatrix worldMap;
     LedControl* lc;
     Player* player;
-    Structure last, secondLast;
+    BoundingBox last, secondLast;
     byte difficulty;
     StructNode* first;
 
     byte difficultyStepY, difficultyStepX;
 
-    Structure generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
-    Structure generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
-    Structure generatePagoda(int8_t i, int8_t j);
-    Structure generateStructure(int8_t xFirst, int8_t yFirst, int8_t xLast, int8_t yLast, int8_t xMax, int8_t yMax);
+    BoundingBox generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
+    BoundingBox generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
+    BoundingBox generatePagoda(int8_t i, int8_t j);
+    BoundingBox generateMovingPlatform(int8_t i, int8_t j);
+    BoundingBox generateStructure(int8_t xFirst, int8_t yFirst, int8_t xLast, int8_t yLast, int8_t xMax, int8_t yMax);
     bool tooClose(int8_t i, int8_t j);
-    Structure getBestRange(Structure structure);
-    Structure getMinDiff(Structure structure);
-    Structure getTotalRange(int8_t i, int8_t j);
-    Structure withoutIntersection(Structure s1, Structure s2);
-    bool intersect(Structure s1, Structure s2);
+    BoundingBox getBestRange(BoundingBox structure);
+    BoundingBox getMinDiff(BoundingBox structure);
+    BoundingBox getTotalRange(int8_t i, int8_t j);
+    BoundingBox withoutIntersection(BoundingBox s1, BoundingBox s2);
+    bool intersect(BoundingBox s1, BoundingBox s2);
     void generateFromLast(bool first = false);
     void scrollUp();
     void scrollDown();
@@ -67,6 +70,7 @@ public:
     ~World() {this->freeAllStructures();}
 
     void drawOnMatrix();
+    void activateStructures();
     void freeStructures();
 
     FakeMatrix* getMatrix() { return &this->worldMap;}
