@@ -346,22 +346,6 @@ void handleJoyClick() {
 void loop() {  
   sm.updateState();
 
-  // game over
-  // if(currentState == PlayingGame && player.getLives() <= 0) {
-  //   currentState = BrowsingMenus;
-  //   currentMenu->clear();
-  //   Menu* oldMenu = currentMenu;
-  //   if(RWHelper::getLastHigh() < player.getHeight()) {
-  //     currentMenu = createCongratulationsMenu();
-  //   }
-  //   else {
-  //     currentMenu = createGameOverMenu();
-  //     player.clear(3, 10, 2, 14);
-  //   }
-  //   oldMenu->freeOptions();
-  //   delete oldMenu;
-  // }
-
   if(sm.getState() == PlayingGame) {
     btReading = digitalRead(btPin);
     if(newBtnPress() && !btPushed && player->onStableGround()) {
@@ -397,6 +381,7 @@ void loop() {
 
   if(sm.getState() == PlayingGame) {
     world->drawOnMatrix();
+    world->freeStructures();
   }
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();

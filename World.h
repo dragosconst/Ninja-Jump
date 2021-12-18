@@ -14,8 +14,10 @@
 #include "Player.h"
 #include <LedControl.h>
 #include "FakeMatrix.h"
+#include "Structures.h"
 
 class Player;
+struct StructNode;
 
 struct Structure {
     int8_t x, y, width, height;
@@ -27,22 +29,19 @@ class World {
 private:
     friend class Player;
     FakeMatrix worldMap;
-    FakeMatrix roomsState;
     LedControl* lc;
     Player* player;
-    int emptyLinesUp, emptyLinesDown;
-    int emptyColumnsLeft, emptyColumnsRight;
     Structure last, secondLast;
     byte difficulty;
+    StructNode* first;
 
-    static const byte numRows, numCols;
     byte difficultyStepY, difficultyStepX;
 
     Structure generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
     Structure generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
+    Structure generatePagoda(int8_t i, int8_t j);
     Structure generateStructure(int8_t xFirst, int8_t yFirst, int8_t xLast, int8_t yLast, int8_t xMax, int8_t yMax);
     bool tooClose(int8_t i, int8_t j);
-    Structure getBestRange(byte i, byte j);
     Structure getBestRange(Structure structure);
     Structure getMinDiff(Structure structure);
     Structure getTotalRange(int8_t i, int8_t j);
@@ -55,14 +54,22 @@ private:
     void scrollRight();
     void checkCamera();
     void recenter(Pos pos);
+    void moveAllStructsBy(int8_t yVal, int8_t xVal);
+    void redrawStructs();
+    void freeAllStructures();
 public:
+    static const byte numRows, numCols;
+    
     World();
     World(LedControl* lc, Player* player, byte difficulty);
     World(const World& other);
     World& operator=(const World& other);
-    ~World() {}
+    ~World() {this->freeAllStructures();}
 
     void drawOnMatrix();
+    void freeStructures();
+
+    FakeMatrix* getMatrix() { return &this->worldMap;}
 };
 
 #endif

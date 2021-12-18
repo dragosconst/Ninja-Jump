@@ -68,8 +68,7 @@ difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 
     // };
     // // memcpy(this->worldMap, worldMap, 16*8*sizeof(byte));
     this->worldMap = FakeMatrix(World::numRows, World::numCols / 8);
-    this->roomsState = FakeMatrix(World::numRows / 8, 1);
-    this->emptyColumnsLeft = this->emptyColumnsRight = this->emptyLinesDown = this->emptyLinesUp = 0;
+    this->first = nullptr;
     this->generateFromLast(true);
     this->generateFromLast();
     this->generateFromLast();
@@ -101,6 +100,7 @@ World& World::operator=(const World& other) {
     this->difficulty = other.difficulty;
     this->last = other.last;
     this->secondLast = other.secondLast;
+    this->first = other.first;
     return *this;
 }
 World::World(const World& other) {
@@ -112,6 +112,7 @@ World::World(const World& other) {
     this->difficulty = other.difficulty;
     this->last = other.last;
     this->secondLast = other.secondLast;
+    this->first = other.first;
 }
 
 void World::scrollUp() {
@@ -133,7 +134,8 @@ void World::scrollUp() {
     for(int j = 0; j < World::numCols; j += 8) {
         this->worldMap.setByte(Pos(0, j), B00000000);
     }
-    this->emptyLinesUp += 1; 
+    this->moveAllStructsBy(1, 0);
+    this->redrawStructs();
     this->checkCamera();
 }
 
@@ -153,7 +155,7 @@ void World::scrollDown() {
     for(int j = 0; j < World::numCols; j += 8) {
         this->worldMap.setByte(Pos(World::numRows - 1, j), B00000000);
     }
-    this->emptyLinesDown += 1; 
+    this->moveAllStructsBy(-1, 0);
     this->checkCamera();
 }
 
@@ -174,9 +176,10 @@ void World::scrollRight() {
         this->player->setPassedPlatform(true);
     }
     for(int i = 0; i < World::numRows; ++i) {
-        this->worldMap[Pos(i, 0)] = 0;
+        this->worldMap[Pos(i, World::numCols - 1)] = 0;
     }
-    this->emptyColumnsLeft += 1;
+    this->moveAllStructsBy(0, -1);
+    this->redrawStructs();
     this->checkCamera();
 }
 
@@ -197,9 +200,10 @@ void World::scrollLeft() {
         this->player->setPassedPlatform(true);
     }
     for(int i = 0; i < World::numRows; ++i) {
-        this->worldMap[Pos(i, World::numCols - 1)] = 0;
+        this->worldMap[Pos(i, 0)] = 0;
     }
-    this->emptyColumnsRight += 1;
+    this->moveAllStructsBy(0, 1);
+    this->redrawStructs();
     this->checkCamera();
 }
 
@@ -220,19 +224,40 @@ bool World::intersect(Structure s1, Structure s2) {
     return xTrue && yTrue;
 }
 
+// this function will redraw structs that ended up outside the map matrix
+// this is needed because structs will get quite big and there is no way to prevent them from disappearing anymore
+void World::redrawStructs() {
+    StructNode* current = this->first;
+    while(current != nullptr) {
+        Structure box = current->structure->getBoundingBox();
+        if(box.x <= 0 || box.y <= 0) {
+            current->structure->draw(this);
+        }
+        current = current->next;
+    }
+}
+
+void World::moveAllStructsBy(int8_t yVal, int8_t xVal) {
+    StructNode* current = this->first;
+    while(current != nullptr) {
+        current->structure->setPos(Pos(current->structure->getPos().i + yVal, current->structure->getPos().j + xVal));
+        current = current->next;
+    }
+}
+
 // check if the last structure is now in the panning camera, in which case generate a new last structure
 void World::checkCamera() {
     // if(this->last.x >= 8 && this->last.x < 16 && this->last.y >= 12 && this->last.y < 20) {
     if(this->intersect(last, Structure(8, 12, 7, 7))) {
-    //     Serial.println("huh");
-    //     Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.print(" "); Serial.print(this->last.height); Serial.print(" "); Serial.print(this->last.width); Serial.println();
-    //     Serial.print(this->secondLast.x); Serial.print(" "); Serial.print(this->secondLast.y); Serial.print(" "); Serial.print(this->secondLast.height); Serial.print(" "); Serial.print(this->secondLast.width); Serial.println();
-    //         for(int i = 0; i < World::numRows; ++i) {
-    //     for(int j = 0; j < World::numCols; ++j) {
-    //         Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-    //         Serial.print(" ");
-    //     }
-    //     Serial.println();
+        // Serial.println("huh");
+        // Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.print(" "); Serial.print(this->last.height); Serial.print(" "); Serial.print(this->last.width); Serial.println();
+        // Serial.print(this->secondLast.x); Serial.print(" "); Serial.print(this->secondLast.y); Serial.print(" "); Serial.print(this->secondLast.height); Serial.print(" "); Serial.print(this->secondLast.width); Serial.println();
+        //     for(int i = 0; i < World::numRows; ++i) {
+        // for(int j = 0; j < World::numCols; ++j) {
+        //     Serial.print(this->worldMap[Pos(i, j)].check() != 0);
+        //     Serial.print(" ");
+        // }
+        // Serial.println();
     // }
         this->generateFromLast();
     }
@@ -284,6 +309,25 @@ Structure World::generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t an
     return Structure(min(where, anchor), i - 1, max(where, anchor) - min(where, anchor), 1);
 }
 
+Structure World::generatePagoda(int8_t i, int8_t j) {
+    StructNode* last = this->first;
+    while(last != nullptr && last->next != nullptr) {
+        last = last->next;
+    }
+
+    Pagoda* pagoda = new Pagoda(i, j);
+    pagoda->draw(this);
+    StructNode* newNode = new StructNode(pagoda, nullptr);
+    if(!last) {
+        this->first = newNode;
+    }
+    else {
+        last->next = newNode;
+    }
+
+    return pagoda->getBoundingBox();
+}
+
 // generate a structure in given params
 Structure World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
     byte x = random(x_first, x_last - 1), y = random(y_first, y_last - 1); // anchor point of structure
@@ -293,12 +337,15 @@ Structure World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last
         return this->generateLine(y, x_first, xMax, x);
     }
     else {
-        byte dice = random(2);
+        byte dice = random(3);
         if(dice == GEN_LINE) {
            return this->generateLine(y, x_first, xMax, x);
         }
         else if(dice == GEN_POINTY) {
             return this->generatePointyLine(y, x_first, xMax, x);
+        }
+        else if(dice == GEN_PAGODA) {
+            return this->generatePagoda(y, x);
         }
     }
 
@@ -324,26 +371,6 @@ bool World::tooClose(int8_t i, int8_t j) {
     return false;
 }
 
-// get the best jumping range that includes i and j
-Structure World::getBestRange(byte i, byte j) {
-    Pos closest(1000, 0);
-    for(int y = World::numRows - 1; y >= 0; --y) {
-        for(int x = 0; x < World::numCols; ++x) {
-            if(this->worldMap[Pos(y, x)].check() && !(player->getX() == x && player->getY() == y)) {
-                if(x <= j && x + Player::maxJump / Player::moveIntervalInAir >= j) {
-                    closest.j = max(x, closest.j);
-                }
-                else if(x > j && x - Player::maxJump / Player::moveIntervalInAir <= j) {
-                    closest.j = max(x, closest.j);
-                }
-
-                if(y <= j && y - Player::maxJump / Player::jumpInterval <= j) {
-                    closest.i = min(y, closest.i);
-                } 
-            }
-        }
-    }
-}
 
 // get range from highest point to the left
 Structure World::getBestRange(Structure structure) {
@@ -538,5 +565,44 @@ void World::drawOnMatrix() {
             _col++;
         }
         row += 1;
+    }
+}
+
+// called on object destructor, free all structures
+void World::freeAllStructures() {
+    while(this->first) {
+        StructNode* toFree = this->first;
+        this->first = this->first->next;
+        delete toFree->structure;
+        delete toFree;
+    }
+}
+
+// free the structures that were "passed", i.e. they are below the last line or column
+void World::freeStructures() {
+    StructNode* current = this->first;
+    while(current != nullptr) {
+        if(current == this->first) {
+            Structure coords = current->structure->getBoundingBox();
+            if(coords.y >= World::numRows || coords.x >= World::numCols) {
+                StructNode* toFree = current;
+                this->first = this->first->next;
+                current = current->next;
+                delete toFree->structure;
+                delete toFree;
+
+                continue;
+            }
+        }
+        if(current->next != nullptr) {
+            Structure coords = current->next->structure->getBoundingBox();
+            if(coords.y >= World::numRows || coords.x >= World::numCols) {
+                StructNode* toFree = current->next;
+                current->next = current->next->next;
+                delete toFree->structure;
+                delete toFree;
+            }
+        }
+        current = current->next;
     }
 }
