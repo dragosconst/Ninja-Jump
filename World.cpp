@@ -203,9 +203,27 @@ void World::scrollLeft() {
     this->checkCamera();
 }
 
+bool World::intersect(Structure s1, Structure s2) {
+    bool xTrue = false, yTrue = false;
+    if(s1.x < s2.x && s1.x + s1.width >= s2.x) {
+        xTrue = true;
+    }
+    if(s1.x >= s2.x && s2.x + s2.width >= s1.x) {
+        xTrue = true;
+    }
+    if(s1.y < s2.y && s1.y + s1.height >= s2.y) {
+        yTrue = true;
+    }
+    if(s1.y >= s2.y && s2.y + s2.height >= s1.y) {
+        yTrue = true;
+    }
+    return xTrue && yTrue;
+}
+
 // check if the last structure is now in the panning camera, in which case generate a new last structure
 void World::checkCamera() {
-    if(this->last.x >= 8 && this->last.x < 16 && this->last.y >= 12 && this->last.y < 20) {
+    // if(this->last.x >= 8 && this->last.x < 16 && this->last.y >= 12 && this->last.y < 20) {
+    if(this->intersect(last, Structure(8, 12, 7, 7))) {
     //     Serial.println("huh");
     //     Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.print(" "); Serial.print(this->last.height); Serial.print(" "); Serial.print(this->last.width); Serial.println();
     //     Serial.print(this->secondLast.x); Serial.print(" "); Serial.print(this->secondLast.y); Serial.print(" "); Serial.print(this->secondLast.height); Serial.print(" "); Serial.print(this->secondLast.width); Serial.println();

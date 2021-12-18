@@ -47,6 +47,7 @@ private:
     Structure getMinDiff(Structure structure);
     Structure getTotalRange(int8_t i, int8_t j);
     Structure withoutIntersection(Structure s1, Structure s2);
+    bool intersect(Structure s1, Structure s2);
     void generateFromLast(bool first = false);
     void scrollUp();
     void scrollDown();

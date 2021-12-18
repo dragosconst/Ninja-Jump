@@ -4,6 +4,7 @@
 #include "World.h"
 #include "Player.h"
 #include "RWHelper.h"
+#include "StateMachine.h"
 
 enum Difficulties {Easy = 0, Normal, Hard};
 
@@ -55,11 +56,11 @@ byte matrixBrightness = 2;
 
 LiquidCrystal lcd(RSPin, EPin, D4, D5, D6, D7);
 
-GameStates currentState;
+StateMachine sm;
 int difficulty = Normal;
 
-Player player;
-World world;
+Player* player;
+World* world;
 
 // Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats, gameOver, congrats, enterName;
 
@@ -166,7 +167,7 @@ Menu* createScoreMenu() {
 
 Menu* createNameMenu() {
   Menu* menu = new Menu(&grOptsNm, &lcd, false);
-  NameOption* _enterName = new NameOption("Name:", &player, RWHelper::writeHigh, createMainMenu);
+  NameOption* _enterName = new NameOption("Name:", player, RWHelper::writeHigh, createMainMenu);
   grOptsNm.push_back(_enterName);
   return menu;
 }
@@ -181,8 +182,8 @@ Menu* createCongratulationsMenu() {
 
 Menu* createDisplayMenu() {
   Menu* menu = new Menu(&grOptsPl, &lcd, false, 0, true);
-  DisplayOption* _height = new DisplayOption("Height: ", player.getHeightAddr(), true, menu);
-  DisplayOption* _lives = new DisplayOption("Lives: ", player.getLivesAddr(), true, menu);
+  DisplayOption* _height = new DisplayOption("Height: ", player->getHeightAddr(), true, menu);
+  DisplayOption* _lives = new DisplayOption("Lives: ", player->getLivesAddr(), true, menu);
   grOptsPl.push_back(_height); grOptsPl.push_back(_lives);
   return menu;
 }
@@ -243,11 +244,11 @@ void setup() {
   // RWHelper::clear();
   
   difficulty = RWHelper::readDiff();
-  player = Player(3, 10, 2, 14, &world);
+  // player = Player(3, 10, 2, 14, &world);
   randomSeed(analogRead(0));
-  world = World(&lc, &player, difficulty);
+  // world = World(&lc, &player, difficulty);
   currentMenu = createWelcomeMenu();
-  currentState = BrowsingMenus;
+  sm = StateMachine(&currentMenu, &player, &world, &lc, &difficulty);
 }
 
 // refine inputs to be used with menus, we don't really care to know its exact value, only whether it's activated positively or not
@@ -302,20 +303,20 @@ bool newBtnPress() {
 void handleJoyInputs() {
   int xVal = analogRead(xPin);
   int yVal = analogRead(yPin);
-  if(currentState == BrowsingMenus && !newMovement(xVal, yVal))
+  if(sm.getState() == BrowsingMenus && !newMovement(xVal, yVal))
     return;
-  if(currentState == BrowsingMenus) {
+  if(sm.getState() == BrowsingMenus) {
     xVal = refineInput(xVal);
     yVal = refineInput(yVal);
     currentMenu->joystickInput(xVal, yVal);
   }
   else {
-    if(millis() - Player::lastMoved >= (!(player.isJumping() || player.isFalling()) ? Player::moveInterval : Player::moveIntervalInAir)){
+    if(millis() - Player::lastMoved >= (!(player->isJumping() || player->isFalling()) ? Player::moveInterval : Player::moveIntervalInAir)){
       xVal = refineInput(xVal);
       yVal = refineInput(yVal);
       // if(xVal)
       //   xVal *= -1; // seems to be reversed
-      player.move(xVal, yVal);
+      player->move(xVal, yVal);
       Player::lastMoved = millis();
     }
   }
@@ -336,42 +337,42 @@ void handleJoyClick() {
 
   clicked = HIGH;
 
-  if(currentState == BrowsingMenus) {
+  if(sm.getState() == BrowsingMenus) {
     currentMenu->joystickClicked(&currentMenu);
   }
   previousSwReading = swReading;
 }
 
 void loop() {  
-  currentMenu->updateState(&currentState);
+  sm.updateState();
 
   // game over
-  if(currentState == PlayingGame && player.getLives() <= 0) {
-    currentState = BrowsingMenus;
-    currentMenu->clear();
-    Menu* oldMenu = currentMenu;
-    if(RWHelper::getLastHigh() < player.getHeight()) {
-      currentMenu = createCongratulationsMenu();
-    }
-    else {
-      currentMenu = createGameOverMenu();
-      player.clear(3, 10, 2, 14);
-    }
-    oldMenu->freeOptions();
-    delete oldMenu;
-  }
+  // if(currentState == PlayingGame && player.getLives() <= 0) {
+  //   currentState = BrowsingMenus;
+  //   currentMenu->clear();
+  //   Menu* oldMenu = currentMenu;
+  //   if(RWHelper::getLastHigh() < player.getHeight()) {
+  //     currentMenu = createCongratulationsMenu();
+  //   }
+  //   else {
+  //     currentMenu = createGameOverMenu();
+  //     player.clear(3, 10, 2, 14);
+  //   }
+  //   oldMenu->freeOptions();
+  //   delete oldMenu;
+  // }
 
-  if(currentState == PlayingGame) {
+  if(sm.getState() == PlayingGame) {
     btReading = digitalRead(btPin);
-    if(newBtnPress() && !btPushed && player.onStableGround()) {
+    if(newBtnPress() && !btPushed && player->onStableGround()) {
       btPushed = HIGH;
-      player.startJumping();
+      player->startJumping();
     }
     // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
     //   player.startJumping();
     // }
     else if(!newBtnPress() && btPushed && btReading == HIGH) {
-      player.stopJumping();
+      player->stopJumping();
       Player::lastFell = millis(); // pause for brief moment in the air
       btPushed = LOW;
     }
@@ -382,28 +383,28 @@ void loop() {
     // }
     previousBtReading = btReading;
 
-    if(player.isJumping() && millis() - Player::lastJumped < Player::maxJump) {
+    if(player->isJumping() && millis() - Player::lastJumped < Player::maxJump) {
       if(millis() - Player::lastMovedJump >= Player::jumpInterval) {
-        player.jump();
+        player->jump();
         Player::lastMovedJump = millis();
       }
     }
-    else if(player.isJumping()) {
-      player.stopJumping();
+    else if(player->isJumping()) {
+      player->stopJumping();
       Player::lastFell = millis(); // pause for brief moment in the air
     }
   }
 
-  if(currentState == PlayingGame) {
-    world.drawOnMatrix();
+  if(sm.getState() == PlayingGame) {
+    world->drawOnMatrix();
   }
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();
   currentMenu->blinkCursor();
   currentMenu->blinkUpDown();
-  if(currentState == PlayingGame) {
+  if(sm.getState() == PlayingGame) {
     if(millis() - Player::lastFell >= Player::fallInterval) {
-      player.fall(); // check if they should fall
+      player->fall(); // check if they should fall
       Player::lastFell = millis();
     }
   }

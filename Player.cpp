@@ -12,8 +12,9 @@ unsigned long Player::lastJumped = 0;
 unsigned long Player::lastMovedJump = 0;
 unsigned long Player::lastFell = 0;
 
-Player::Player(int lives, int height, int x, int y, World* world) : lives(lives), height(height), x(x), y(y), lx(x), ly(y), world(world), jumping(false)
+Player::Player(int lives, int height) : lives(lives), height(height), jumping(false)
 , passedPlatform(false), maxY(10000), heightMax(height), fallDistance(0) { }
+
 
 void Player::decreaseHealth() {
     this->lives--;

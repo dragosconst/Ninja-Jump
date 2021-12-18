@@ -559,12 +559,3 @@ void Menu::printValues() {
     Serial.println("stop printing");
     // delay(500);
 }
-
-void Menu::updateState(GameStates* state) {
-    if(*state == BrowsingMenus && this->playingMenu) {
-        *state = PlayingGame;
-    }
-    else if(*state == PlayingGame && !this->playingMenu) {
-        *state = BrowsingMenus;
-    }
-}

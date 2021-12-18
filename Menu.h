@@ -72,9 +72,9 @@ public:
     void checkDisplayValues();
     void freeOptions();
     void printValues();
-    void updateState(GameStates* state);
 
     bool isGreeting() const { return this->greetingMenu; }
+    bool isPlaying() const { return this->playingMenu; }
 };
 
 #endif

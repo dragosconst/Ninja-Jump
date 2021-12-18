@@ -2,6 +2,8 @@
 #define PLAYER_H
 
 #define FALL_DISTANCE 10
+#define MAX_LIVES 2
+#define START_HEIGHT 10
 
 #include "Arduino.h"
 #include "World.h"
@@ -33,7 +35,7 @@ public:
     static unsigned long lastFell;
 
     Player() {lives = 0; height = 0;}
-    Player(int lives, int height, int x, int y, World* world);
+    Player(int lives, int height);
     ~Player() {}
 
     void decreaseHealth();
@@ -47,7 +49,7 @@ public:
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
     static bool isInRange(byte x, byte y, byte sx, byte sy);
-    void setPosition(Pos pos) { this->x = pos.j; this->y = pos.i;}
+    void setPosition(Pos pos) { this->x = pos.j; this->y = pos.i; this->setLastPos(pos);}
     void setWorld(World* world) { this->world = world;}
     void setPassedPlatform(bool val) { this->passedPlatform = val;}
     void setLastPos(Pos pos) { this->lx = pos.j; this->ly = pos.i;}
