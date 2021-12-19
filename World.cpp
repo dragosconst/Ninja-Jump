@@ -74,6 +74,7 @@ difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 
     this->generateFromLast();
     Serial.println(this->difficultyStepX);
     Serial.println(this->difficultyStepY);
+    Serial.println(this->difficulty);
     for(int i = 0; i < World::numRows; ++i) {
         for(int j = 0; j < World::numCols; ++j) {
             Serial.print(this->worldMap[Pos(i, j)].check() != 0);
@@ -286,7 +287,7 @@ void World::recenter(Pos pos) {
 }
 
 BoundingBox World::generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor) {
-    int8_t where = random(jst, jend - 1);
+    int8_t where = random(jst, jend);
     for(int8_t j = min(where, anchor); j <= max(where, anchor); ++j) {
         this->worldMap[Pos(i, j)] = 1;
     }
@@ -297,7 +298,7 @@ BoundingBox World::generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor
 //*___*
 //_***_
 BoundingBox World::generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor) {
-    int8_t where = random(jst, jend - 1); 
+    int8_t where = random(jst, jend); 
     for(int8_t j = min(where, anchor); j <= max(where, anchor); ++j) {
         if(j == min(where, anchor) || j == max(where, anchor)) {
             this->worldMap[Pos(i - 1, j)] = 1;
@@ -347,16 +348,36 @@ BoundingBox World::generateMovingPlatform(int8_t i, int8_t j) {
     return movingPlatform->getBoundingBox();
 }
 
+BoundingBox World::generateDisappPlatform(int8_t i, int8_t j) {
+    StructNode* last = this->first;
+    while(last != nullptr && last->next != nullptr) {
+        last = last->next;
+    }
+    Serial.println("huh?");
+    DisappearingPlatform* disappearingPlatform = new DisappearingPlatform(i, j);
+    Serial.println("huh 2?");
+    disappearingPlatform->draw(this);
+    StructNode* newNode = new StructNode(disappearingPlatform, nullptr);
+    if(last == nullptr) {
+        this->first = newNode;
+    }
+    else {
+        last->next = newNode;
+    }
+
+    return disappearingPlatform->getBoundingBox();
+}
+
 // generate a structure in given params
 BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
-    byte x = random(x_first, x_last - 1), y = random(y_first, y_last - 1); // anchor point of structure
-    // Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
-    // Serial.print("y is "); Serial.println(y);
+    byte x = random(x_first, x_last), y = random(y_first, y_last); // anchor point of structure
+    Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
+    Serial.print("y is "); Serial.println(y);
     if(y == World::numRows - 1) {
         return this->generateLine(y, x_first, xMax, x);
     }
     else {
-        byte dice = random(4);
+        byte dice = random(5);
         if(dice == GEN_LINE) {
            return this->generateLine(y, x_first, xMax, x);
         }
@@ -369,30 +390,14 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
         else if(dice == GEN_MOVING) {
             return this->generateMovingPlatform(y, x);
         }
-    }
-
-}
-
-// check if this position would be too close to other structures
-bool World::tooClose(int8_t i, int8_t j) {
-    for(int y = World::numRows - 1; y >= 0; --y) {
-        for(int x = 0; x < World::numCols; ++x) {
-            if(this->worldMap[Pos(y, x)].check() && !(player->getX() == x && player->getY() == y)) {
-                if(y >= i && y - this->difficultyStepY * (this->difficulty + 1) < i - 1 && x <= j && x + this->difficultyStepX * (this->difficulty + 1) > j)
-                {
-                    Serial.println(this->worldMap[Pos(y, x)].check());
-                    Serial.print(i); Serial.print(" ");Serial.print(j); Serial.print(" "); Serial.print(y); Serial.print(" "); Serial.print(x); Serial.println();
-                    return true;
-                }
-                // if(y >= i && y - this->difficultyStepY * (this->difficulty + 1) < i && x >= j && x + this->difficultyStepX * (this->difficulty + 1) < j) {
-                //     return true;
-                // }
-            }
+        else if(dice == GEN_DISAPP) {
+            Serial.println("less goooooo");
+            // disappearing platforms have preset shapes that require a certain positioning, relative to the last generated structure
+            return this->generateDisappPlatform(y_first, x_first + 4);
         }
     }
-    return false;
-}
 
+}
 
 // get range from highest point to the left
 BoundingBox World::getBestRange(BoundingBox structure) {
@@ -440,7 +445,7 @@ BoundingBox World::getTotalRange(int8_t y, int8_t x) {
 }
 
 // get area which is reachable from last generated structure, but not from second last structure
-// it's going to be a rought estimate, since we need a square
+// it's going to be a rought estimate, since we need a rectangle
 BoundingBox World::withoutIntersection(BoundingBox s1, BoundingBox s2) {
     if(s1.x <= s2.x) {
         // look to the left
@@ -459,20 +464,7 @@ BoundingBox World::withoutIntersection(BoundingBox s1, BoundingBox s2) {
             w = min(s2.x - s1.x - 1, s1.width);
             wh = s1.height;
         }
-
-        if(s1.x < s2.x) {
-            h = s1.height;
-            hw = min(s2.x - s1.x - 1, s1.width);
-        }
-        else {
-            h = min(s2.y - s1.y - 1, s1.height);
-            hw = s1.width;
-        }
-
-        if(w * wh >= h * hw) {
-            return BoundingBox(x, y, w, wh);
-        }
-        return BoundingBox(x, y, hw, h);
+        return BoundingBox(x, y, w, wh);
     }
     else {
         // look to the right
@@ -486,19 +478,7 @@ BoundingBox World::withoutIntersection(BoundingBox s1, BoundingBox s2) {
             wh = s1.height;
         }
 
-        if(s1.x < s2.x) {
-            h = s1.height;
-            hw = min(s2.x - s1.x - 1, s1.width);
-        }
-        else {
-            h = min(s2.y - s1.y - 1, s1.height);
-            hw = s1.width;
-        }
-
-        if(w * wh >= h * hw) {
-            return BoundingBox(x - w, y, w, wh);
-        }
-        return BoundingBox(x - hw, y, hw, h);
+        return BoundingBox(x - w, y, w, wh);
     }
 }
 
@@ -517,7 +497,7 @@ void World::generateFromLast(bool first = false) {
             range = this->withoutIntersection(range, this->getMinDiff(this->last));
             // Serial.print("range is: x = "); Serial.print(range.x); Serial.print(" y = "); Serial.print(range.y); Serial.print(" height = "); Serial.print(range.height); Serial.print(" width = "); Serial.println(range.width);
             this->last = this->generateStructure(range.x, range.y, min(range.x + range.width + 1, World::numCols - 1), 
-            max(range.y - range.height - 1, 0), min(range.x + range.width + 1 + 8, World::numCols - 1), max(range.y - range.height - 1 - 8, 0));
+            min(range.y + range.height + 1, World::numRows - 1), min(range.x + range.width + 1 + 8, World::numCols - 1),  min(range.y + range.height + 1, World::numRows - 1));
         }
         else {
             BoundingBox rangeLast = this->getBestRange(this->last);
@@ -529,50 +509,10 @@ void World::generateFromLast(bool first = false) {
             range = this->withoutIntersection(range, this->getMinDiff(this->last));
             this->secondLast = this->last;
             this->last = this->generateStructure(range.x, range.y, min(range.x + range.width + 1, World::numCols - 1), 
-            max(range.y - range.height - 1, 0), min(range.x + range.width + 1 + 8, World::numCols - 1), max(range.y - range.height - 1 - 8, 0));
+            min(range.y + range.height + 1, World::numRows - 1), min(range.x + range.width + 1 + 8, World::numCols - 1), min(range.y + range.height + 1, World::numRows - 1));
         }
     }
 }
-
-/**
- * @brief 
- * This method will handle most procedural generation. When filling a room, multiple things will be considered, like difficulty, whether
- * adjacent rooms are empty or not (to generate more complex structures), what power-ups the player has etc.
- * For starters, I will generate either regular platforms or pointy platforms. TODO: add padogas
- * Difficulty: it will influence multiple things, but for starters, how far apart platforms will be. A difficulty of 0 will have at minimum
- * a separation of player.range / 3, diff of 1 will be 2 * player.range / 3 and diff of 2 will be exactly how far the player can reach on the Oy
- * axis. On the Ox axis, I will do the same for now.
- * The way it should work is:
- * 1. generate first platform in bottom right
- * 2. look from the "current" structure to what positions are viable
- * 3. generate two structures in a random position chosen from that pool in such a way that a structure goes "up" and another "to the right"
- * Viable positions are positions higher than the difficulty minimum, but also included in the player range
- * @param i 
- * @param j 
- */
-// void World::fillRoom(byte i, byte j) {
-//     int i_dist = 8, j_dist = 8; // how far we should generate
-//     if(j < World::numCols / 8 - 1 && !this->roomsState[Pos(i, j + 1)].check()) {
-//         j_dist += 8;
-//     }
-
-//     for(byte y = i + i_dist - 1; y <= i; --y) {
-//         if(y == World::numRows - 1) {
-//             // this case is different because we don't have to look downwards to get an idea of what we must generate
-//             for(byte x = j; x < j + j_dist; ++j) {
-//                 if(x == 0) {
-//                     // leftmost, downward point should always be a platform
-//                     this->generateLine(y, j, j + j_dist, x);
-//                 }
-//                 else {
-//                     if(!this->tooClose(y, x)) {
-                        
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 void World::drawOnMatrix() {
     int row = 0;

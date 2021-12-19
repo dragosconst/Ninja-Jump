@@ -88,6 +88,21 @@ void Player::fall() {
         this->fallDistance = 0;
         this->height += FALL_DISTANCE * 10;
         this->world->recenter(Pos(this->ly, this->lx));
+        this->world->redrawStructs();
+        if(!this->world->worldMap[Pos(this->ly + 1, this->lx)].check()) {
+            // was on a moving platform, search for it on a very generous range
+            for(int8_t x = this->lx - MOV_RANGE; x <= this->lx + MOV_RANGE; ++x) {
+                if(x < 0 || x >= World::numCols)
+                    continue;
+                if(this->world->worldMap[Pos(this->ly + 1, this->lx)].check()) {
+                    this->lx = x;
+                    Serial.println("aaaaaaaaaaaaaaaaa");
+                    break;
+                }
+            }
+            this->world->recenter(Pos(this->ly, this->lx));
+            this->world->redrawStructs();
+        }
         this->x = this->lx;
         this->y = this->ly;
     }

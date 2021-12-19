@@ -45,7 +45,7 @@ public:
     bool onStableGround() const;
     void fall();
     void jump();
-    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true;}
+    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true; this->fallDistance = 0;}
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
     static bool isInRange(byte x, byte y, byte sx, byte sy);

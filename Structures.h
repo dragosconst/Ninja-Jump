@@ -4,15 +4,30 @@
 #define MAX_PAG_W 8
 #define MIN_PAG_W 4
 
-#define MAX_MOV_W 4
+#define MAX_MOV_W 6
 #define MOV_RANGE 8
 #define MOV_LEFT -1
 #define MOV_RIGHT 1
 
+#define DP_TYPES 4 // types of disappearing platforms
+#define DP_LINE 0
+#define DP_STAIR 1
+#define DP_CLINE 2
+#define DP_CSTAIR 3
+#define DP_SIZE 2 // size of disappearing platform
+#define LINE_LEN 14
+#define LINE_HEI 1
+#define STAIR_LEN 4
+#define STAIR_HEI 7
+#define CLINE_LEN 10
+#define CLINE_HEI 5
+#define CSTAIR_LEN 6
+#define CSTAIR_HEI 9
+
 #include "Arduino.h"
 #include "World.h"
 
-enum StructureTypes {PagodaStruct, MovingPlatformStruct};
+enum StructureTypes {PagodaStruct, MovingPlatformStruct, DisappearingStruct};
 struct BoundingBox;
 class World;
 class Player;
@@ -61,6 +76,28 @@ public:
 
     Pos getPos() const { return Pos(this->ey, this->crx);}
     void setPos(Pos pos) { this->ey = pos.i; this->ex -= (this->crx - pos.j); this->crx = pos.j;}
+    BoundingBox getBoundingBox();
+};
+
+/**
+ * @brief 
+ * Disappearing platforms will be spawned
+ */
+class DisappearingPlatform : public BaseStructure { 
+private:
+    int8_t dtype, top, left, state;
+    long lastSwitch;
+public:
+    static const int switchInterval;
+
+    DisappearingPlatform(int8_t ey, int8_t ex);
+    ~DisappearingPlatform() {}
+
+    void draw(World* world);
+    void activate(Player* player);
+
+    Pos getPos() const { return Pos(this->top, this->left);};
+    void setPos(Pos pos);
     BoundingBox getBoundingBox();
 };
 

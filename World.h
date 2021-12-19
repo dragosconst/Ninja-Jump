@@ -7,6 +7,7 @@
 #define GEN_MOVING 3
 #define GEN_DISAPP 4
 #define GEN_CANON 5
+#define GEN_VERT 6
 #define PLAYER_X 12
 #define PLAYER_Y 16
 
@@ -43,8 +44,8 @@ private:
     BoundingBox generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor);
     BoundingBox generatePagoda(int8_t i, int8_t j);
     BoundingBox generateMovingPlatform(int8_t i, int8_t j);
+    BoundingBox generateDisappPlatform(int8_t i, int8_t j);
     BoundingBox generateStructure(int8_t xFirst, int8_t yFirst, int8_t xLast, int8_t yLast, int8_t xMax, int8_t yMax);
-    bool tooClose(int8_t i, int8_t j);
     BoundingBox getBestRange(BoundingBox structure);
     BoundingBox getMinDiff(BoundingBox structure);
     BoundingBox getTotalRange(int8_t i, int8_t j);
