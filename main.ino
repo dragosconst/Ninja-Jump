@@ -62,8 +62,6 @@ int difficulty = Normal;
 Player* player;
 World* world;
 
-// Menu greetingsMenu, mainMenu, settingsMenu, aboutMenu, highScoreMenu, playStats, gameOver, congrats, enterName;
-
 // should probably dynamically alocate these too
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
@@ -195,39 +193,12 @@ Menu* createGameOverMenu() {
   return menu;
 }
 
-// Custom character seem to slow down the LCD by a LOT.
-// byte upArrow[8] = {
-//     B00000,
-//     B00100,
-//     B01110,
-//     B10101,
-//     B00100,
-//     B00100,
-//     B00100,
-//     B00100
-// };
-// byte downArrow[8] = {
-//         B00000,
-//         B00100,
-//         B00100,
-//         B00100,
-//         B00100,
-//         B10101,
-//         B01110,
-//         B00100
-//     };
-// void createSpecialChars(LiquidCrystal* lcd) {
-//   lcd->createChar(UP_ARROW, upArrow);
-//   lcd->createChar(DOWN_ARROW, downArrow);
-// }
-
 void setup() {
   Serial.begin(9600);
   
-  // the zero refers to the MAX7219 number, it is zero for 1 chip
-  lc.shutdown(0, false); // turn off power saving, enables display
-  lc.setIntensity(0, RWHelper::readLEDBright()); // sets brightness (0~15 possible values)
-  lc.clearDisplay(0);// clear screen
+  lc.shutdown(0, false);
+  lc.setIntensity(0, RWHelper::readLEDBright());
+  lc.clearDisplay(0);
 
   lcd.begin(16, 2);
 
@@ -244,9 +215,7 @@ void setup() {
   // RWHelper::clear();
   
   difficulty = RWHelper::readDiff();
-  // player = Player(3, 10, 2, 14, &world);
-  randomSeed(analogRead(0));
-  // world = World(&lc, &player, difficulty);
+  randomSeed(analogRead(0)); // maybe seed on each play, to add millis?
   currentMenu = createWelcomeMenu();
   sm = StateMachine(&currentMenu, &player, &world, &lc, &difficulty);
 }
@@ -314,8 +283,6 @@ void handleJoyInputs() {
     if(millis() - Player::lastMoved >= (!(player->isJumping() || player->isFalling()) ? Player::moveInterval : Player::moveIntervalInAir)){
       xVal = refineInput(xVal);
       yVal = refineInput(yVal);
-      // if(xVal)
-      //   xVal *= -1; // seems to be reversed
       player->move(xVal, yVal);
       Player::lastMoved = millis();
     }
@@ -352,19 +319,11 @@ void loop() {
       btPushed = HIGH;
       player->startJumping();
     }
-    // if(!newBtnPress() && btPushed && btReading == LOW && player.onStableGround()) {
-    //   player.startJumping();
-    // }
     else if(!newBtnPress() && btPushed && btReading == HIGH) {
       player->stopJumping();
       Player::lastFell = millis(); // pause for brief moment in the air
       btPushed = LOW;
     }
-    // if(btPushed == LOW || millis() - Player::lastJumped >= Player::maxJump) {
-    //   player.stopJumping();
-    // }
-    // else {
-    // }
     previousBtReading = btReading;
 
     if(player->isJumping() && millis() - Player::lastJumped < Player::maxJump) {

@@ -353,9 +353,8 @@ BoundingBox World::generateDisappPlatform(int8_t i, int8_t j) {
     while(last != nullptr && last->next != nullptr) {
         last = last->next;
     }
-    Serial.println("huh?");
+
     DisappearingPlatform* disappearingPlatform = new DisappearingPlatform(i, j);
-    Serial.println("huh 2?");
     disappearingPlatform->draw(this);
     StructNode* newNode = new StructNode(disappearingPlatform, nullptr);
     if(last == nullptr) {
@@ -368,6 +367,25 @@ BoundingBox World::generateDisappPlatform(int8_t i, int8_t j) {
     return disappearingPlatform->getBoundingBox();
 }
 
+BoundingBox World::generateCanon(int8_t i, int8_t j) {
+    StructNode* last = this->first;
+    while(last != nullptr && last->next != nullptr) {
+        last = last->next;
+    }
+
+    Canon* canon = new Canon(i, j, random(1, 4));
+    canon->draw(this);
+    StructNode* newNode = new StructNode(canon, nullptr);
+    if(last == nullptr) {
+        this->first = newNode;
+    }
+    else {
+        last->next = newNode;
+    }
+
+    return canon->getBoundingBox();
+}
+
 // generate a structure in given params
 BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
     byte x = random(x_first, x_last), y = random(y_first, y_last); // anchor point of structure
@@ -377,7 +395,8 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
         return this->generateLine(y, x_first, xMax, x);
     }
     else {
-        byte dice = random(5);
+        byte dice = random(GEN_TYPES);
+        return this->generateCanon(y, x);
         if(dice == GEN_LINE) {
            return this->generateLine(y, x_first, xMax, x);
         }
@@ -391,9 +410,11 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
             return this->generateMovingPlatform(y, x);
         }
         else if(dice == GEN_DISAPP) {
-            Serial.println("less goooooo");
             // disappearing platforms have preset shapes that require a certain positioning, relative to the last generated structure
             return this->generateDisappPlatform(y_first, x_first + 4);
+        }
+        else if(dice == GEN_CANON) {
+            return this->generateCanon(y, x);
         }
     }
 

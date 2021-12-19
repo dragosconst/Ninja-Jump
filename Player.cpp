@@ -72,6 +72,29 @@ bool Player::isInRange(byte x,  byte y, byte sx, byte sy) {
 
 bool Player::onStableGround() const { return this->world->worldMap[Pos(y + 1, x)].check();}
 
+void Player::die() {
+    this->fallDistance = 0; 
+    this->height += FALL_DISTANCE * 10;
+    this->lives -= 1;
+    this->world->recenter(Pos(this->ly, this->lx));
+    this->world->redrawStructs();
+    if(!this->world->worldMap[Pos(this->ly + 1, this->lx)].check()) {
+        // was on a moving platform, search for it on a very generous range
+        for(int8_t x = this->lx - MOV_RANGE; x <= this->lx + MOV_RANGE; ++x) {
+            if(x < 0 || x >= World::numCols)
+                continue;
+            if(this->world->worldMap[Pos(this->ly + 1, this->lx)].check()) {
+                this->lx = x;
+                break;
+            }
+        }
+        this->world->recenter(Pos(this->ly, this->lx));
+        this->world->redrawStructs();
+    }
+    this->x = this->lx;
+    this->y = this->ly;
+}
+
 void Player::fall() {
     if(this->onStableGround()) {
         this->fallDistance = 0;
@@ -84,27 +107,7 @@ void Player::fall() {
     this->fallDistance += 1;
     // this->y += 1;
     if(this->fallDistance == FALL_DISTANCE) {
-        this->lives -= 1;
-        this->fallDistance = 0;
-        this->height += FALL_DISTANCE * 10;
-        this->world->recenter(Pos(this->ly, this->lx));
-        this->world->redrawStructs();
-        if(!this->world->worldMap[Pos(this->ly + 1, this->lx)].check()) {
-            // was on a moving platform, search for it on a very generous range
-            for(int8_t x = this->lx - MOV_RANGE; x <= this->lx + MOV_RANGE; ++x) {
-                if(x < 0 || x >= World::numCols)
-                    continue;
-                if(this->world->worldMap[Pos(this->ly + 1, this->lx)].check()) {
-                    this->lx = x;
-                    Serial.println("aaaaaaaaaaaaaaaaa");
-                    break;
-                }
-            }
-            this->world->recenter(Pos(this->ly, this->lx));
-            this->world->redrawStructs();
-        }
-        this->x = this->lx;
-        this->y = this->ly;
+        this->die();
     }
     this->world->worldMap[Pos(this->y, this->x)] = 1;
 }

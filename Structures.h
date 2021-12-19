@@ -24,10 +24,16 @@
 #define CSTAIR_LEN 6
 #define CSTAIR_HEI 9
 
+#define CAN_RANGE 8
+#define MAX_CANONS 3
+#define CAN_PLAT_LEN 2
+#define CAN_SUB_HEI 3
+#define MAX_SUBS 3
+
 #include "Arduino.h"
 #include "World.h"
 
-enum StructureTypes {PagodaStruct, MovingPlatformStruct, DisappearingStruct};
+enum StructureTypes {PagodaStruct, MovingPlatformStruct, DisappearingStruct, CanonStruct};
 struct BoundingBox;
 class World;
 class Player;
@@ -81,7 +87,7 @@ public:
 
 /**
  * @brief 
- * Disappearing platforms will be spawned
+ * Disappearing platforms will be spawned with different unique types, representing what pattern they will follow.
  */
 class DisappearingPlatform : public BaseStructure { 
 private:
@@ -97,6 +103,35 @@ public:
     void activate(Player* player);
 
     Pos getPos() const { return Pos(this->top, this->left);};
+    void setPos(Pos pos);
+    BoundingBox getBoundingBox();
+};
+
+/**
+ * @brief 
+ * Canons will be at most 3 layered substructures consisting of a platform of length 2, a canon and at the end another platform the player has
+ * to jump to (or the final platform).
+ */
+class Canon : public BaseStructure {
+private:
+    byte can_no;
+    int8_t x[MAX_SUBS + 1];
+    int8_t b[MAX_SUBS]; // bullet positions on the map
+    long lastMoved, lastShot;
+    bool isShooting;
+
+    int8_t translateBulletPos(int8_t x);
+    int8_t translatePlatPos(int8_t x);
+public:
+    static const int moveInterval, shootInterval;
+
+    Canon(int8_t ey, int8_t ex, byte can_no);
+    ~Canon() {}
+
+    void draw(World* world);
+    void activate(Player* player);
+
+    Pos getPos() const;
     void setPos(Pos pos);
     BoundingBox getBoundingBox();
 };

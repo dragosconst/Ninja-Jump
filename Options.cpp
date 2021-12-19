@@ -32,15 +32,12 @@ MenuOption& MenuOption::operator=(const MenuOption& other) {
         this->text[i] = other.text[i];
     }
     this->text[i] = '\0';
-    // Serial.println(text);
     this->createMenu = other.createMenu;
     return *this;
 }
 
 void MenuOption::focus(Menu** currentMenu) {
     Menu* oldMenu = *currentMenu;
-    // Serial.println("this is good so far");
-    // delay(300);
     (*currentMenu)->clear();
     *currentMenu = this->createMenu();     
 
@@ -61,10 +58,7 @@ void MenuOption::getTextValue(char* writeHere) {
 
     size_t i;
     for(i = 0; this->text[i]; ++i){
-        // Serial.println(this->text[i]);
         writeHere[i] = this->text[i];
-        // Serial.println(this->text[i]);
-        // delay(300);
     }
     writeHere[i] = '\0';
 }
@@ -220,8 +214,6 @@ void NameOption::unfocus() {
         this->eepromUpdate(this->player->getHeight(), this->name);
         this->player->clear(3, 10, 2, 14);
         Menu* oldMenu = *currentMenu;
-        // Serial.println("this is good so far");
-        // delay(300);
         (*currentMenu)->clear();
         *currentMenu = this->nextMenu();
         oldMenu->freeOptions();

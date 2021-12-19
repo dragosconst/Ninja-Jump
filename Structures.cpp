@@ -32,7 +32,6 @@ void Pagoda::draw(World* world) {
             }
             col++;
         }
-        Serial.println();
         row++;
     }
 }
@@ -122,9 +121,6 @@ DisappearingPlatform::DisappearingPlatform(int8_t ey, int8_t ex) : BaseStructure
         this->top = ey - CSTAIR_HEI + 1;
         this->left = ex - CSTAIR_LEN + 1;
     }
-    Serial.println("built object");
-    Serial.print("top="); Serial.print(this->top); Serial.print(" left=");Serial.println(this->left);
-    Serial.println(this->dtype);
     this->state = false;
 }
 
@@ -289,4 +285,136 @@ BoundingBox DisappearingPlatform::getBoundingBox() {
     else if(this->dtype == DP_CSTAIR) {
         return BoundingBox(this->top, this->ex - 1, 1, 0, true);
     }
+}
+
+const int Canon::moveInterval = 50;
+const int Canon::shootInterval = 300;
+
+Canon::Canon(int8_t ey, int8_t ex, byte can_no) : BaseStructure(ey, ex, CanonStruct), can_no(can_no) {
+    this->x[0] = Player::maxJump / Player::moveIntervalInAir;
+    for(byte i = 1; i < MAX_SUBS + 1; ++i) {
+        this->x[i]  = random(Player::maxJump / Player::moveIntervalInAir);
+    }
+    for(byte i = 0; i < MAX_SUBS; ++i) {
+        this->b[i] = CAN_RANGE - 1; // initialize bullet positions to last collumn
+    }
+    int8_t can_no_cpy = can_no;
+    Serial.print("canon size is ");Serial.println(can_no);
+     
+    
+    this->isShooting = false;
+    this->lastMoved = millis();
+    this->lastShot = millis();
+}
+
+int8_t Canon::translateBulletPos(int8_t x) {
+    return ex - (CAN_RANGE - x - 1);
+}
+
+int8_t Canon::translatePlatPos(int8_t x) {
+    return ex - (CAN_PLAT_LEN - 1 + Player::maxJump / Player::moveIntervalInAir - x);
+}
+
+void Canon::draw(World* world) {
+    int8_t top = this->ey - CAN_SUB_HEI * this->can_no;
+    int8_t left = this->ex - CAN_PLAT_LEN + 1 - Player::maxJump / Player::moveIntervalInAir;
+    int8_t row = -1; // -1 to skip the first row, which has only the final platform
+    int8_t cr_x = can_no - 1; // we are drawing the structure top to bottom
+    for(int8_t y = top; y < top + CAN_SUB_HEI * this->can_no + 1; ++y) {
+        for(int8_t x = left; x <= this->ex; ++x) {
+            if(y == top) {
+                // draw the last platform at the top
+                int8_t cr_pos = this->translatePlatPos(this->x[MAX_SUBS]);
+                if(x >= cr_pos && x < cr_pos + CAN_PLAT_LEN) {
+                    (*world->getMatrix())[Pos(y, x)] = 1;
+                    continue;
+                }
+                (*world->getMatrix())[Pos(y, x)] = 0;
+                continue;
+            }
+            else {
+                if(row % 3 == 1) {
+                    (*world->getMatrix())[Pos(y, x)] = 0;
+                }
+                else if(row % 3 == 2) {
+                    // draw the corresponding platform
+                    int8_t cr_pos = this->translatePlatPos(this->x[cr_x]);
+                    if(x >= cr_pos && x < cr_pos + CAN_PLAT_LEN) {
+                        (*world->getMatrix())[Pos(y, x)] = 1;
+                        continue;
+                    }
+                    (*world->getMatrix())[Pos(y, x)] = 0;
+                }
+                else if(row % 3 == 0) {
+                    if(x == ex) {
+                        (*world->getMatrix())[Pos(y, x)] = 1;
+                        continue;
+                    }
+                    int8_t bx = this->translateBulletPos(b[cr_x]);
+                    if(x == bx) {
+                        (*world->getMatrix())[Pos(y, x)] = 1;
+                        continue;
+                    }
+                    (*world->getMatrix())[Pos(y, x)] = 0;
+                }
+                
+            }
+        }
+        if(row >= 0 && row % 3 == 2)
+            cr_x--;
+        row++;
+    }
+}
+
+void Canon::activate(Player* player) {
+    // check if we hit the player
+    if(this->isShooting) {
+        // the first canon is the bottom one
+        for(int8_t i = 0; i < MAX_SUBS && i < can_no; ++i) {
+            int8_t xi = this->translateBulletPos(b[i]);
+            int8_t yi = this->ey - CAN_SUB_HEI * this->can_no + 1 + i * 3;
+            if(player->getPos().i == yi && player->getPos().j == xi) {
+                player->die();
+                return; // if the player dies, this memory will be freed and we might get undefined behaviour if we continue with the function
+            }
+        }
+    }
+
+    // do movement and reloading
+    if(this->isShooting && millis() - this->lastMoved >= Canon::moveInterval) {
+        if(this->b[0] == 0) {
+            this->isShooting = false;
+            for(int i = 0; i < MAX_SUBS; ++i) {
+                this->b[i] = CAN_RANGE - 1;
+            }
+            this->lastShot = millis();
+            this->draw(player->getWorld());
+            return;
+        }
+        for(int i = 0; i < MAX_SUBS; ++i) {
+            // update all canons positions, if we don't use 3 canons, we will do a few extra iterations, but honestly for at most 2 extra iterations no optimization is worth the effort
+            this->b[i] -= 1;
+        }
+        this->lastMoved = millis();
+        this->draw(player->getWorld());
+    }
+    else if(!this->isShooting && millis() - this->lastShot >= Canon::shootInterval) {
+        this->isShooting = true;
+        return;
+    }
+}
+
+Pos Canon::getPos() const {
+    return Pos(this->ey, this->ex);
+}
+
+void Canon::setPos(Pos pos) {
+    this->ey = pos.i;
+    this->ex = pos.j;
+}
+
+BoundingBox Canon::getBoundingBox() {
+    int8_t top = this->ey - CAN_SUB_HEI * this->can_no;
+    int8_t x_pos = this->translatePlatPos(this->x[MAX_SUBS]);
+    return BoundingBox(x_pos, top, CAN_PLAT_LEN - 1, 0);
 }

@@ -1,13 +1,13 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#define GEN_TYPES 6
 #define GEN_LINE 0
 #define GEN_POINTY 1
 #define GEN_PAGODA 2
 #define GEN_MOVING 3
 #define GEN_DISAPP 4
 #define GEN_CANON 5
-#define GEN_VERT 6
 #define PLAYER_X 12
 #define PLAYER_Y 16
 
@@ -45,6 +45,7 @@ private:
     BoundingBox generatePagoda(int8_t i, int8_t j);
     BoundingBox generateMovingPlatform(int8_t i, int8_t j);
     BoundingBox generateDisappPlatform(int8_t i, int8_t j);
+    BoundingBox generateCanon(int8_t i, int8_t j);
     BoundingBox generateStructure(int8_t xFirst, int8_t yFirst, int8_t xLast, int8_t yLast, int8_t xMax, int8_t yMax);
     BoundingBox getBestRange(BoundingBox structure);
     BoundingBox getMinDiff(BoundingBox structure);

@@ -71,7 +71,6 @@ public:
     void updateOptionValue(Option* option);
     void checkDisplayValues();
     void freeOptions();
-    void printValues();
 
     bool isGreeting() const { return this->greetingMenu; }
     bool isPlaying() const { return this->playingMenu; }

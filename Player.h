@@ -53,6 +53,7 @@ public:
     void setWorld(World* world) { this->world = world;}
     void setPassedPlatform(bool val) { this->passedPlatform = val;}
     void setLastPos(Pos pos) { this->lx = pos.j; this->ly = pos.i;}
+    void die();
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }
