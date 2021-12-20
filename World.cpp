@@ -5,91 +5,26 @@ const byte World::numRows = 24;
 const byte World::numCols = 24;
 
 World::World() {
-    // // byte worldMap[16][8] = {
-    // //     {0, 1, 1, 1, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 1, 1, 1, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 1, 1, 0, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 1, 1, 1, 0},
-    // //     {0, 1, 1, 1, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 1, 1, 1, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 0, 0, 0, 0, 0, 0, 0},
-    // //     {0, 1, 1, 1, 1, 1, 0, 0}
-    // // };
-    // byte worldMap[16] = {
-    //     B00000000,
-    //     B00000000,
-    //     B01110000,
-    //     B00000000,
-    //     B00000000,
-    //     B00001110,
-    //     B00000000,
-    //     B01100000,
-    //     B00000000,
-    //     B00001110,
-    //     B01110000,
-    //     B00000000,
-    //     B00001110,
-    //     B00000000,
-    //     B00000000,
-    //     B01111100
-    // };
-    // // memcpy(this->worldMap, worldMap, 16*8*sizeof(byte));
-    // this->worldMap = FakeMatrix(World::numRows, World::numCols / 8);
-    // for(int i = 0; i < 16; ++i) {
-    //     this->worldMap.setByte(Pos(i, 0), worldMap[i]);
-    // }
 }
 
 World::World(LedControl* lc, Player* player, byte difficulty) : lc(lc), player(player), difficulty(difficulty),
 difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 3) {
-    // byte worldMap[16] = {
-    //     B00000000,
-    //     B00000000,
-    //     B01110000,
-    //     B00000000,
-    //     B00000000,
-    //     B00001110,
-    //     B00000000,
-    //     B01100000,
-    //     B00000000,
-    //     B00001110,
-    //     B01110000,
-    //     B00000000,
-    //     B00001110,
-    //     B00000000,
-    //     B00000000,
-    //     B01111100
-    // };
-    // // memcpy(this->worldMap, worldMap, 16*8*sizeof(byte));
     this->worldMap = FakeMatrix(World::numRows, World::numCols / 8);
     this->first = nullptr;
     this->generateFromLast(true);
     this->generateFromLast();
     this->generateFromLast();
-    Serial.println(this->difficultyStepX);
-    Serial.println(this->difficultyStepY);
-    Serial.println(this->difficulty);
-    for(int i = 0; i < World::numRows; ++i) {
-        for(int j = 0; j < World::numCols; ++j) {
-            Serial.print(this->worldMap[Pos(i, j)].check() != 0);
-            Serial.print(" ");
-        }
-        Serial.println();
-    }
-        Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.println();
-    // for(int i = 0; i < 16; ++i) {
-    //     this->worldMap.setByte(Pos(i, 0), worldMap[i]);
-    //     if(this->worldMap[Pos(i, 1)].check()) {
+    // Serial.println(this->difficultyStepX);
+    // Serial.println(this->difficultyStepY);
+    // Serial.println(this->difficulty);
+    // for(int i = 0; i < World::numRows; ++i) {
+    //     for(int j = 0; j < World::numCols; ++j) {
+    //         Serial.print(this->worldMap[Pos(i, j)].check() != 0);
+    //         Serial.print(" ");
     //     }
-    //     else {
-    //     }
+    //     Serial.println();
     // }
+    //     Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.println();
 }
 
 World& World::operator=(const World& other) {
@@ -389,14 +324,13 @@ BoundingBox World::generateCanon(int8_t i, int8_t j) {
 // generate a structure in given params
 BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
     byte x = random(x_first, x_last), y = random(y_first, y_last); // anchor point of structure
-    Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
-    Serial.print("y is "); Serial.println(y);
+    // Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
+    // Serial.print("y is "); Serial.println(y);
     if(y == World::numRows - 1) {
         return this->generateLine(y, x_first, xMax, x);
     }
     else {
         byte dice = random(GEN_TYPES);
-        return this->generateCanon(y, x);
         if(dice == GEN_LINE) {
            return this->generateLine(y, x_first, xMax, x);
         }

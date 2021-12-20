@@ -105,7 +105,6 @@ void Player::fall() {
     this->world->scrollDown();
     this->height -= 10;
     this->fallDistance += 1;
-    // this->y += 1;
     if(this->fallDistance == FALL_DISTANCE) {
         this->die();
     }
@@ -118,7 +117,6 @@ void Player::jump() {
     this->world->scrollUp();
     this->height += 10;
     this->heightMax = max(this->height, this->heightMax);
-    // this->y -= 1;
     if(this->world->worldMap[Pos(this->y, this->x)].check())
         this->passedPlatform = true;
     this->world->worldMap[Pos(this->y, this->x)] = 1;

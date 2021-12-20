@@ -1,0 +1,80 @@
+#include "Arduino.h"
+#include "SoundsManager.h"
+
+int8_t SoundsManager::ingame_theme = INGAME_THEME_1;
+bool SoundsManager::inMenu = true;
+bool SoundsManager::soundsOff = false;
+DFRobotDFPlayerMini* SoundsManager::player = nullptr;
+
+void SoundsManager::playTheme() {
+    if(SoundsManager::soundsOff == true) {
+        return;
+    }
+
+    if(SoundsManager::inMenu) {
+        SoundsManager::player->loop(MENU_THEME);
+    }
+    else {
+        if(SoundsManager::ingame_theme == INGAME_FIRST_THEME) {
+            SoundsManager::player->loop(INGAME_THEME_1);
+        }
+        else {
+            SoundsManager::player->loop(INGAME_THEME_2);
+        }
+    }
+}
+
+void SoundsManager::setPlayer(DFRobotDFPlayerMini* player) {
+    SoundsManager::player = player;
+}
+
+void SoundsManager::setSounds(bool sounds) {
+    SoundsManager::soundsOff = sounds;
+}
+
+void SoundsManager::changeInGame(int8_t newVal) {
+    SoundsManager::ingame_theme = newVal;   
+}
+
+void SoundsManager::changeVolume(int8_t vol) {
+    SoundsManager::player->volume(vol);
+}
+
+void SoundsManager::playJump() {
+    if(SoundsManager::soundsOff == true) {
+        return;
+    }
+    tone(SFXpin, NOTE_FS3, JUMP_DUR);
+}
+
+void SoundsManager::playCanons() {
+    if(SoundsManager::soundsOff == true) {
+        return;
+    }
+
+    tone(SFXpin, NOTE_F4, CAN_DUR);
+}
+
+void SoundsManager::playDisappearing() {
+    if(SoundsManager::soundsOff == true) {
+        return;
+    }
+
+    tone(SFXpin, NOTE_FS6, DIS_DUR);
+}
+
+void SoundsManager::playMenuScroll() {
+    if(SoundsManager::soundsOff == true) {
+        return;
+    }
+
+    tone(SFXpin, NOTE_B5, MENU_DUR);
+}
+
+void SoundsManager::playMenuClick() {
+    if(SoundsManager::soundsOff == true) {
+        return;
+    }
+
+    tone(SFXpin, NOTE_DS7, MENU_DUR);
+}

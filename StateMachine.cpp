@@ -18,8 +18,6 @@ void StateMachine::updateState() {
         oldMenu->freeOptions();
         delete oldMenu;
         (*this->currentMenu) = createDisplayMenu();
-  // world = World(&lc, &player, difficulty);
-  // player = Player(3, 10, 2, 14, &world);
     }
     else if(this->state == PlayingGame && (*this->player)->getLives() <= 0) {
         this->state = BrowsingMenus;

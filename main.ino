@@ -10,7 +10,7 @@ enum Difficulties {Easy = 0, Normal, Hard};
 
 const byte dinPin = 11;
 const byte clockPin = 12;
-const byte loadPin = 9;
+const byte loadPin = A5;
 
 const byte xPin = A0;
 const byte yPin = A1;
@@ -25,14 +25,20 @@ long lastBtPush = 0;
 bool btPushed = LOW;
 bool previousBtPush = LOW;
 
-const byte contrastPin = 3;
+const byte contrastPin = 9;
 const byte RSPin = 8;
 const byte EPin = 13;
 const byte D4 = 7;
-const byte D5 = 6;
+const byte D5 = A4;
 const byte D6 = 4;
 const byte D7 = 2;
 const byte brightnessPin = 10;
+
+const byte RXpin = 5; //RX for mp3 player
+const byte TXpin = 6; // TX for mp3 player
+const byte SFXpin = 3;
+SoftwareSerial mp3Serial(TXpin, RXpin);
+DFRobotDFPlayerMini DFPplayer;
 
 byte baseContrast = 60;
 byte baseLCDBrightness = 150;
@@ -66,7 +72,7 @@ World* world;
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
-Option* grOptsStArr[5];
+Option* grOptsStArr[7];
 Option* grOptsPlArr[2];
 Option* grOptsHsArr[7];
 Option* grOptsGoArr[1];
@@ -114,26 +120,28 @@ Menu* createAboutMenu() {
 }
 
 Menu* createSettingsMenu() {
-  SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::readContrast(), 10, true, RWHelper::writeContrast);
-  SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::readLCDBright(), 20, true, RWHelper::writeLCDBright);
-  LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::readLEDBright(), true, RWHelper::writeLEDBright);
-  GameOption* _diffOption = new GameOption("Difficulty", &difficulty, difficulty, RWHelper::readDiff(), 1, 3, true, RWHelper::writeDiff);
+  SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::getVal(CONTRAST_ADDR), 10, true, RWHelper::writeContrast);
+  SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::getVal(LCD_ADDR), 20, true, RWHelper::writeLCDBright);
+  LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::getVal(LED_ADDR), true);
+  GameOption* _diffOption = new GameOption("Difficulty", &difficulty, difficulty, RWHelper::getVal(DIFF_ADDR), 1, 3, true);
+  VolumeOption* _volOption = new VolumeOption("Volume", 10, true);
+  ThemeOption* _themeOption = new ThemeOption("Game theme", 0, true);
   MenuOption* _backSetOption = new MenuOption("Back\n", createMainMenu);
-  grOptsSt.push_back(_contrastOption); grOptsSt.push_back(_brightOption); grOptsSt.push_back(_ledOption); grOptsSt.push_back(_diffOption); grOptsSt.push_back(_backSetOption);
+  grOptsSt.push_back(_contrastOption); grOptsSt.push_back(_brightOption); grOptsSt.push_back(_ledOption); grOptsSt.push_back(_diffOption); grOptsSt.push_back(_volOption); grOptsSt.push_back(_themeOption); grOptsSt.push_back(_backSetOption);
   Menu* menu = new Menu(&grOptsSt, &lcd, false);
   return menu;
 }
 
 Menu* createScoreMenu() {
   MenuOption* _backFromScore = new MenuOption("Back\n", createMainMenu);
-  if(RWHelper::readHighNum() == 0) {
+  if(RWHelper::getVal(HSNUM_ADDR) == 0) {
     GreetingOption* _noScores = new GreetingOption("No scores...\n");
     grOptsHs.push_back(_noScores);
   }
   else {
     // creating the score text is much more tedious than it seems, but it's mostly due to memory restrictions
     // using strings would have reduced this to probably a couple lines of code
-    for(byte i = 1; i <= RWHelper::readHighNum(); ++i) {
+    for(byte i = 1; i <= RWHelper::getVal(HSNUM_ADDR); ++i) {
       char textVal[18];
       int index = 0;
       char name[3];
@@ -165,7 +173,7 @@ Menu* createScoreMenu() {
 
 Menu* createNameMenu() {
   Menu* menu = new Menu(&grOptsNm, &lcd, false);
-  NameOption* _enterName = new NameOption("Name:", player, RWHelper::writeHigh, createMainMenu);
+  NameOption* _enterName = new NameOption("Name:", player, createMainMenu);
   grOptsNm.push_back(_enterName);
   return menu;
 }
@@ -175,6 +183,7 @@ Menu* createCongratulationsMenu() {
   MenuOption* _congratulations = new MenuOption("Congratulations\n", createNameMenu);
   GreetingOption* _congratulationsLine2 = new GreetingOption("on new high s.\n");
   grOptsCg.push_back(_congratulations); grOptsCg.push_back(_congratulationsLine2);
+  SoundsManager::switchMenuState(false);
   return menu;
 }
 
@@ -183,6 +192,7 @@ Menu* createDisplayMenu() {
   DisplayOption* _height = new DisplayOption("Height: ", player->getHeightAddr(), true, menu);
   DisplayOption* _lives = new DisplayOption("Lives: ", player->getLivesAddr(), true, menu);
   grOptsPl.push_back(_height); grOptsPl.push_back(_lives);
+  SoundsManager::switchMenuState(false);
   return menu;
 }
 
@@ -190,17 +200,27 @@ Menu* createGameOverMenu() {
   MenuOption* _gameOverOption = new MenuOption("  Game over!\n", createMainMenu);
   grOptsGo.push_back(_gameOverOption);
   Menu* menu = new Menu(&grOptsGo, &lcd, true, 2000);
+  SoundsManager::switchMenuState(true);
   return menu;
 }
 
 void setup() {
-  Serial.begin(9600);
+ Serial.begin(115200);
+ mp3Serial.begin(9600);
+
+  if(!DFPplayer.begin(mp3Serial)) {
+    Serial.println("s a busit");
+  }
+ SoundsManager::setPlayer(&DFPplayer);
+ SoundsManager::changeVolume(30);
+ SoundsManager::playTheme();
+
+
+  // tone(SFXpin, 300);
   
   lc.shutdown(0, false);
-  lc.setIntensity(0, RWHelper::readLEDBright());
+  lc.setIntensity(0, RWHelper::getVal(LED_ADDR));
   lc.clearDisplay(0);
-
-  lcd.begin(16, 2);
 
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
@@ -210,11 +230,15 @@ void setup() {
 
   pinMode(contrastPin, OUTPUT);
   pinMode(brightnessPin, OUTPUT);  
-  analogWrite(contrastPin, RWHelper::readContrast());
-  analogWrite(brightnessPin, RWHelper::readLCDBright());
+  analogWrite(contrastPin, RWHelper::getVal(CONTRAST_ADDR));
+  analogWrite(brightnessPin, RWHelper::getVal(LCD_ADDR));
+  
+  lcd.begin(16, 2);
+  // lcd.print("heelloo");
+  // delay(5000);
   // RWHelper::clear();
   
-  difficulty = RWHelper::readDiff();
+  difficulty = RWHelper::getVal(DIFF_ADDR);
   randomSeed(analogRead(0)); // maybe seed on each play, to add millis?
   currentMenu = createWelcomeMenu();
   sm = StateMachine(&currentMenu, &player, &world, &lc, &difficulty);
@@ -339,9 +363,9 @@ void loop() {
   }
 
   if(sm.getState() == PlayingGame) {
+    world->freeStructures();
     world->activateStructures();
     world->drawOnMatrix();
-    world->freeStructures();
   }
   currentMenu->drawMenu();
   currentMenu->checkDisplayValues();

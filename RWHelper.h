@@ -1,6 +1,15 @@
 #ifndef RWHELPER_S
 #define RWHELPER_S
 
+#define HIGH_STORED 5
+
+#define CONTRAST_ADDR 0
+#define LCD_ADDR 1 * sizeof(byte)
+#define LED_ADDR 2 
+#define DIFF_ADDR 3
+#define HSNUM_ADDR 4
+#define CHAR_LIMIT 3
+
 #include "Arduino.h"
 #include <EEPROM.h>
 
@@ -14,28 +23,19 @@
  */
 class RWHelper {
 private:
-    static const byte contrastAddr;
-    static const byte LCDbrightAddr;
-    static const byte LEDbrightAddr;
-    static const byte diffAddr;
-    static const byte highScoreNumAddr; // from 4 onwards the highscores will be stored
-    static const byte charLimit; // limit of chars in a name
 public:
+    static const byte volAddr;
+    static const byte themeAddr;
+
     static void clear();
     static void writeContrast(byte value);
     static void writeLCDBright(byte value);
-    static void writeLEDBright(byte value);
-    static void writeDiff(byte value);
-    static void writeHighNum(byte value);
     static void writeHigh(int value, char* name);
+    static void writeByte(byte addr, byte val);
 
-    static byte readContrast();
-    static byte readLCDBright();
-    static byte readLEDBright();
-    static byte readDiff();
-    static byte readHighNum();
     static int readHigh(int which, char* writeHere);
     static int getLastHigh();
+    static byte getVal(byte addr);
 };
 
 #endif

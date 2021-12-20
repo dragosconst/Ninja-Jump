@@ -8,6 +8,7 @@
 #include "Arduino.h"
 #include "World.h"
 #include "FakeMatrix.h"
+#include "SoundsManager.h"
 
 class World;
 
@@ -45,7 +46,7 @@ public:
     bool onStableGround() const;
     void fall();
     void jump();
-    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true; this->fallDistance = 0;}
+    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true; this->fallDistance = 0; SoundsManager::playJump();}
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
     static bool isInRange(byte x, byte y, byte sx, byte sy);

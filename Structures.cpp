@@ -122,6 +122,7 @@ DisappearingPlatform::DisappearingPlatform(int8_t ey, int8_t ex) : BaseStructure
         this->left = ex - CSTAIR_LEN + 1;
     }
     this->state = false;
+    this->playedSound = false;
 }
 
 void DisappearingPlatform::draw(World* world) {
@@ -264,6 +265,11 @@ void DisappearingPlatform::activate(Player* player) {
         this->lastSwitch = millis();
         this->state = !this->state;
         this->draw(player->getWorld());
+        this->playedSound = false;
+    }
+    else if(millis() - this->lastSwitch >= DisappearingPlatform::switchInterval - DP_ALERT && !playedSound) {
+        SoundsManager::playDisappearing();
+        this->playedSound = true;
     }
 }
 
@@ -299,7 +305,7 @@ Canon::Canon(int8_t ey, int8_t ex, byte can_no) : BaseStructure(ey, ex, CanonStr
         this->b[i] = CAN_RANGE - 1; // initialize bullet positions to last collumn
     }
     int8_t can_no_cpy = can_no;
-    Serial.print("canon size is ");Serial.println(can_no);
+    // Serial.print("canon size is ");Serial.println(can_no);
      
     
     this->isShooting = false;
@@ -311,7 +317,7 @@ int8_t Canon::translateBulletPos(int8_t x) {
     return ex - (CAN_RANGE - x - 1);
 }
 
-int8_t Canon::translatePlatPos(int8_t x) {
+int8_t Canon::translatePlatPos(int8_t x) const {
     return ex - (CAN_PLAT_LEN - 1 + Player::maxJump / Player::moveIntervalInAir - x);
 }
 
@@ -322,6 +328,9 @@ void Canon::draw(World* world) {
     int8_t cr_x = can_no - 1; // we are drawing the structure top to bottom
     for(int8_t y = top; y < top + CAN_SUB_HEI * this->can_no + 1; ++y) {
         for(int8_t x = left; x <= this->ex; ++x) {
+            if(y < 0 || x < 0 || y >= World::numRows || x >= World::numCols) {
+                continue;
+            }
             if(y == top) {
                 // draw the last platform at the top
                 int8_t cr_pos = this->translatePlatPos(this->x[MAX_SUBS]);
@@ -400,17 +409,20 @@ void Canon::activate(Player* player) {
     }
     else if(!this->isShooting && millis() - this->lastShot >= Canon::shootInterval) {
         this->isShooting = true;
+        SoundsManager::playCanons();
         return;
     }
 }
 
 Pos Canon::getPos() const {
-    return Pos(this->ey, this->ex);
+    return Pos(this->ey - CAN_SUB_HEI * this->can_no, this->translatePlatPos(this->x[MAX_SUBS]));
 }
 
 void Canon::setPos(Pos pos) {
-    this->ey = pos.i;
-    this->ex = pos.j;
+    int8_t top = this->ey - CAN_SUB_HEI * this->can_no;
+    int8_t x_pos = this->translatePlatPos(this->x[MAX_SUBS]);
+    this->ey -= (top - pos.i);
+    this->ex -= (x_pos - pos.j);
 }
 
 BoundingBox Canon::getBoundingBox() {

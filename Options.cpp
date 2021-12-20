@@ -106,8 +106,8 @@ void SystemOption::getTextValue(char* writeHere) {
 }
 
 
-LEDOption::LEDOption(const char* text, LedControl* lc, byte brightValue, bool last, void (*eepromUpdate)(byte)) : Option(ledValue, text), lc(lc),
-brightValue(brightValue), last(last), eepromUpdate(eepromUpdate) { }
+LEDOption::LEDOption(const char* text, LedControl* lc, byte brightValue, bool last) : Option(ledValue, text), lc(lc),
+brightValue(brightValue), last(last) { }
 
 void LEDOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
     if(yVal == -1) {
@@ -151,8 +151,8 @@ void LEDOption::getTextValue(char* writeHere) {
     writeHere[i] = '\0';
 }
 
-GameOption::GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last, void (*eepromUpdate)(byte)) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
-stepValue(stepValue), currentValue(currentValue), possibleSteps(possibleSteps), last(last), eepromUpdate(eepromUpdate) { }
+GameOption::GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last) : Option(gameValue, text), valAddr(valAddr), baseValue(baseValue),
+stepValue(stepValue), currentValue(currentValue), possibleSteps(possibleSteps), last(last) { }
 
 void GameOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
     if(yVal == -1) {
@@ -192,8 +192,8 @@ void GameOption::getTextValue(char* writeHere) {
 
 const char NameOption::alphabet[62] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-NameOption::NameOption(const char* text, Player* player, void (*eepromUpdate)(int, char*), Menu* (*nextMenu)(void)) : Option(nameOption, text), player(player),
-eepromUpdate(eepromUpdate), crChar(0), crIndex(10), updatedIndex(false), nextMenu(nextMenu) {
+NameOption::NameOption(const char* text, Player* player, Menu* (*nextMenu)(void)) : Option(nameOption, text), player(player),
+ crChar(0), crIndex(10), updatedIndex(false), nextMenu(nextMenu) {
     for(byte j = 0; j < 3; ++j) {
         this->vals[j] = 10;
     }
@@ -211,7 +211,7 @@ void NameOption::unfocus() {
         this->inFocus = false;
         this->name[3] == '\0';
         Serial.println(this->player->getHeight());
-        this->eepromUpdate(this->player->getHeight(), this->name);
+        RWHelper::writeHigh(this->player->getHeight(), this->name);
         this->player->clear(3, 10, 2, 14);
         Menu* oldMenu = *currentMenu;
         (*currentMenu)->clear();
@@ -299,5 +299,84 @@ void GreetingOption::getTextValue(char* writeHere) {
     for(i = 0; this->text[i]; ++i){
         writeHere[i] = this->text[i];
     }
+    writeHere[i] = '\0';
+}
+
+VolumeOption::VolumeOption(const char* text, byte volume, bool last) : Option(volumeOption, text), volume(volume), last(last) {}
+
+void VolumeOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
+    if(yVal == -1) {
+        if(this->volume < 10)
+            this->volume++;
+        SoundsManager::changeVolume(this->transformVolume());
+        currentMenu->updateOptionValue(this);
+    }
+    else if(yVal == 1) {
+        if(this->volume > 0)
+            this->volume--;
+        SoundsManager::changeVolume(this->transformVolume());
+        currentMenu->updateOptionValue(this);
+    }
+}
+
+void VolumeOption::unfocus() {
+    this->inFocus = false;
+    RWHelper::writeByte(RWHelper::volAddr, this->volume);
+}
+
+void VolumeOption::getTextValue(char* writeHere) {
+    size_t i = 0;
+    for(i = 0; this->text[i]; ++i){
+        writeHere[i] = this->text[i];
+    }
+    char number[20];
+    itoa(this->volume, number, 10);    
+    for(size_t j = 0; number[j]; ++j) {
+        writeHere[i++] = number[j];
+    }
+    if(this->last)
+        writeHere[i++] = '\n';
+    writeHere[i] = '\0';
+}
+
+ThemeOption::ThemeOption(const char* text, byte theme, bool last) : Option(themeOption, text), theme(theme), last(last) {}
+
+void ThemeOption::joystickInput(int xVal, int yVal, Menu* currentMenu) {
+    if(yVal == -1) {
+        this->theme ^= 1;
+        SoundsManager::changeInGame(this->theme + 1);
+        SoundsManager::switchMenuState(false);
+        SoundsManager::playTheme();
+        currentMenu->updateOptionValue(this);
+        
+    }
+    else if(yVal == 1) {
+        this->theme ^= 0;
+        SoundsManager::changeInGame(this->theme + 1);
+        SoundsManager::switchMenuState(false);
+        SoundsManager::playTheme();
+        currentMenu->updateOptionValue(this);   
+    }
+}
+
+void ThemeOption::unfocus() {
+    this->inFocus = false;
+    SoundsManager::switchMenuState(true);
+    SoundsManager::playTheme();
+    RWHelper::writeByte(RWHelper::themeAddr, this->theme);
+}
+
+void ThemeOption::getTextValue(char* writeHere) {
+    size_t i = 0;
+    for(i = 0; this->text[i]; ++i){
+        writeHere[i] = this->text[i];
+    }
+    char number[20];
+    itoa(this->theme, number, 10);    
+    for(size_t j = 0; number[j]; ++j) {
+        writeHere[i++] = number[j];
+    }
+    if(this->last)
+        writeHere[i++] = '\n';
     writeHere[i] = '\0';
 }

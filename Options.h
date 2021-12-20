@@ -1,6 +1,7 @@
 #ifndef OPTION_H
 #define OPTION_H
 #define MAX_OPTION_TEXT 18
+#define VOL_0 20
 
 #include "Arduino.h"
 #include <Vector.h>
@@ -8,6 +9,7 @@
 #include <LedControl.h>
 #include "Menu.h"
 #include "Player.h"
+#include "RWHelper.h"
 
 // a menu option can either be:
 // 1. a menu transition - selecting it will transition to a new menu
@@ -17,7 +19,9 @@
 // 5. naming option for high scores - names will have only 3 characters for EEPROM's sake -> could modify in the future
 // 6. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
 // 7. greeting - might be necessary for game over and welcome screens
-enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting};
+// 8. volume option for the music
+// 9. change in-game music theme
+enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting, volumeOption, themeOption};
 
 class Menu;
 
@@ -82,18 +86,17 @@ class LEDOption : public Option {
 private:
     LedControl* lc;
     byte brightValue;
-    void (*eepromUpdate)(byte);
     bool last;
 
     void updateMatrix();
 public:
     LEDOption() {}
-    LEDOption(const char* text, LedControl* lc, byte brightValue, bool last, void (*eepromUpdate)(byte));
+    LEDOption(const char* text, LedControl* lc, byte brightValue, bool last);
     ~LEDOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true; this->updateMatrix(); }
     void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus() { this->inFocus = false; this->eepromUpdate(this->brightValue); this->lc->clearDisplay(0);}
+    void unfocus() { this->inFocus = false; RWHelper::writeByte(LED_ADDR,this->brightValue); this->lc->clearDisplay(0);}
     void getTextValue(char* writeHere);
 };
 
@@ -105,15 +108,14 @@ private:
     byte stepValue;
     byte possibleSteps;
     bool last;
-    void (*eepromUpdate)(byte);
 public:
     GameOption() {}
-    GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last, void (*eepromUpdate)(byte));
+    GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last);
     ~GameOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
     void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus() { this->inFocus = false;this->eepromUpdate(this->currentValue);}
+    void unfocus() { this->inFocus = false;RWHelper::writeByte(LCD_ADDR,this->currentValue);}
     void getTextValue(char* writeHere);
 };
 
@@ -124,7 +126,6 @@ private:
     Player* player;
     byte vals[3];
     char name[4];
-    void (*eepromUpdate)(int, char*);
     Menu* (*nextMenu)(void);
     Menu** currentMenu;
     byte crIndex; // which letter i have selected at this moment
@@ -132,7 +133,7 @@ private:
     bool updatedIndex;
 public:
     NameOption() {}
-    NameOption(const char* text, Player* player, void (*eepromUpdate)(int, char*), Menu* (*nextMenu)(void));
+    NameOption(const char* text, Player* player, Menu* (*nextMenu)(void));
     ~NameOption() {}
 
     void focus(Menu** currentMenu);
@@ -174,4 +175,36 @@ public:
     void unfocus() {}
     void getTextValue(char* writeHere);
 };
+
+class VolumeOption : public Option {
+private:
+    byte volume;
+    bool last;
+    byte transformVolume() const { return this->volume + VOL_0;}
+public:
+    VolumeOption() {}
+    VolumeOption(const char* text, byte vol, bool last);
+    ~VolumeOption() {}
+
+    void focus(Menu** currentMenu) { this->inFocus = true;}
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);
+    void unfocus();
+    void getTextValue(char* writeHere);
+};
+
+class ThemeOption : public Option {
+private:
+    byte theme;
+    bool last;
+public:
+    ThemeOption() {}
+    ThemeOption(const char* text, byte theme, bool last);
+    ~ThemeOption() {}
+
+    void focus(Menu** currentMenu) { this->inFocus = true;}
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);
+    void unfocus();
+    void getTextValue(char* writeHere);
+};
+
 #endif
