@@ -23,7 +23,7 @@
 #define CLINE_HEI 5
 #define CSTAIR_LEN 6
 #define CSTAIR_HEI 9
-#define DP_ALERT 200 // it emits a small alert, before disappearing
+#define DP_ALERT 400 // it emits a small alert, before disappearing
 
 #define CAN_RANGE 8
 #define MAX_CANONS 3

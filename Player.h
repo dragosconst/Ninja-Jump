@@ -33,6 +33,8 @@ private:
     int lives;
     int heightMax, height;
     byte fallDistance = 0;
+    bool flashState;
+    long lastFlash;
 public:
     static const int moveInterval; // interval at which to move
     static const int moveIntervalInAir;
@@ -40,6 +42,7 @@ public:
     static const int maxJump; // maximum amount of time spent jumping
     static const int jumpInterval; // interval at which to move in the air
     static const int fallInterval;
+    static const int flashInterval;
     static unsigned long lastJumped;
     static unsigned long lastMovedJump;
     static unsigned long lastFell;
@@ -60,6 +63,7 @@ public:
     void setPassedPlatform(bool val) { this->passedPlatform = val;}
     void setLastPos(Pos pos) { this->lx = pos.j; this->ly = pos.i;}
     void die();
+    void draw();
 
     int getX() const { return this->x; }
     int getY() const { return this->y; }

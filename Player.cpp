@@ -6,6 +6,7 @@ const int Player::moveIntervalInAir = 140;// interval at which to move in the ai
 const int Player::maxJump = 500; // maximum amount of time spent jumping
 const int Player::jumpInterval = 160;
 const int Player::fallInterval = 200;
+const int Player::flashInterval = 200;
 
 unsigned long Player::lastMoved = 0;
 unsigned long Player::lastJumped = 0;
@@ -13,7 +14,7 @@ unsigned long Player::lastMovedJump = 0;
 unsigned long Player::lastFell = 0;
 
 Player::Player(int lives, int height) : lives(lives), height(height), jumping(false)
-, passedPlatform(false), heightMax(height), fallDistance(0) { }
+, passedPlatform(false), heightMax(height), fallDistance(0), lastFlash(millis()), flashState(true) { }
 
 
 void Player::move(int xVal, int yVal) {
@@ -24,13 +25,11 @@ void Player::move(int xVal, int yVal) {
         else {
             Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
         }
-        this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
     else if(xVal == -1) {
         if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check()) {
             this->world->scrollLeft();
         }
-        this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
     if(xVal) {
         if(!this->isJumping() && this->onStableGround()) {
@@ -68,6 +67,8 @@ void Player::die() {
 void Player::fall() {
     if(this->onStableGround()) {
         this->fallDistance = 0;
+        this->lx = this->x;
+        this->ly = this->y;
         return;
     }
     if(this->isJumping())
@@ -78,7 +79,6 @@ void Player::fall() {
     if(this->fallDistance == FALL_DISTANCE) {
         this->die();
     }
-    this->world->worldMap[Pos(this->y, this->x)] = 1;
 }
 
 void Player::jump() {
@@ -89,7 +89,6 @@ void Player::jump() {
     this->heightMax = max(this->height, this->heightMax);
     if(this->world->worldMap[Pos(this->y, this->x)].check())
         this->passedPlatform = true;
-    this->world->worldMap[Pos(this->y, this->x)] = 1;
 }
 
 // used to reset player after game over screen
@@ -100,4 +99,22 @@ void Player::clear(int lives, int height, int x, int y) {
     this->heightMax = height;
     this->x = x;
     this->y = y;
+}
+
+void Player::draw() {
+    if(this->isJumping() || this->isFalling()) {
+        this->world->worldMap[Pos(this->y, this->x)] = 1;
+        return;
+    }
+    if(millis() - this->lastFlash >= Player::flashInterval) {
+        this->flashState = !this->flashState;
+        this->lastFlash = millis();
+    }
+
+    if(this->flashState) {
+        this->world->worldMap[Pos(this->y, this->x)] = 1;
+    }
+    else {
+        this->world->worldMap[Pos(this->y, this->x)] = 0;
+    }
 }

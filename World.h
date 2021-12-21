@@ -9,14 +9,14 @@
 #define GEN_DISAPP 4
 #define GEN_CANON 5
 #define PLAYER_X 12
-#define PLAYER_Y 23
+#define PLAYER_Y 25
 #define PAGODAS 200
 #define MOVING 500
 #define DISAPPEARING 800
 #define CANON 1200
 
 #define CAMERA_X 8
-#define CAMERA_Y 19
+#define CAMERA_Y 21
 #define CAMERA_DIM 8
 
 #include "Arduino.h"

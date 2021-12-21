@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "World.h"
 
-const byte World::numRows = 29;
+const byte World::numRows = 32;
 const byte World::numCols = 24;
 
 World::World() {
@@ -354,7 +354,7 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
         }
         else if(dice == GEN_POINTY) {
             if(x == xMax - 1) {
-                x--;
+                x -= 3;
             }
             return this->generatePointyLine(y, x_first, xMax, x);
         }
@@ -498,7 +498,6 @@ void World::generateFromLast(bool first = false) {
 
 void World::drawOnMatrix() {
     int row = 0;
-    this->worldMap[Pos(this->player->getY(), this->player->getX())] = 1;
 
     for(int i = CAMERA_Y; i < CAMERA_Y + CAMERA_DIM; ++i) {
         int _col = 0;
@@ -528,7 +527,7 @@ void World::freeStructures() {
     while(current != nullptr) {
         if(current == this->first) {
             BoundingBox coords = current->structure->getBoundingBox();
-            if(coords.y >= World::numRows || coords.x >= World::numCols) {
+            if(coords.y >= World::numRows) {
                 StructNode* toFree = current;
                 this->first = this->first->next;
                 current = current->next;
@@ -540,7 +539,7 @@ void World::freeStructures() {
         }
         if(current->next != nullptr) {
             BoundingBox coords = current->next->structure->getBoundingBox();
-            if(coords.y >= World::numRows || coords.x >= World::numCols) {
+            if(coords.y >= World::numRows) {
                 StructNode* toFree = current->next;
                 current->next = current->next->next;
                 delete toFree->structure;

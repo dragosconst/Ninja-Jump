@@ -416,6 +416,7 @@ void loop() {
   }
 
   if(sm.getState() == PlayingGame) {
+    player->draw();
     world->freeStructures();
     world->activateStructures();
     world->drawOnMatrix();
