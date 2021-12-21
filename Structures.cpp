@@ -274,6 +274,8 @@ void DisappearingPlatform::activate(Player* player) {
 }
 
 void DisappearingPlatform::setPos(Pos pos) {
+    this->ey += (pos.i - this->top);
+    this->ex += (pos.j - this->left);
     this->top = pos.i;
     this->left = pos.j;
 }

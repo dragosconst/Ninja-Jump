@@ -105,7 +105,7 @@ public:
     void draw(World* world);
     void activate(Player* player);
 
-    Pos getPos() const { return Pos(this->top, this->left);};
+    Pos getPos() const { if(this->dtype != DP_CSTAIR) return Pos(this->top, this->left); return Pos(this->top, this->ex - 1);};
     void setPos(Pos pos);
     BoundingBox getBoundingBox();
 };

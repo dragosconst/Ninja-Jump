@@ -355,6 +355,12 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
         else if(dice == GEN_POINTY) {
             if(x == xMax - 1) {
                 x -= 3;
+                if(y == y_first)
+                    y += 1;
+            }
+            else {
+                if(x != x_first)
+                    x -= 1;
             }
             return this->generatePointyLine(y, x_first, xMax, x);
         }
