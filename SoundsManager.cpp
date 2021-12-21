@@ -46,41 +46,48 @@ void SoundsManager::changeVolume(int8_t vol) {
     SoundsManager::player->volume(vol);
 }
 
-void SoundsManager::playJump() {
+void SoundsManager::playSound(int freq, int dur) {
     if(SoundsManager::soundsOn == false) {
         return;
     }
-    tone(SFXpin, NOTE_FS3, JUMP_DUR);
+    tone(SFXpin, freq, dur);
 }
 
-void SoundsManager::playCanons() {
-    if(SoundsManager::soundsOn == false) {
-        return;
-    }
+// void SoundsManager::playJump() {
+//     if(SoundsManager::soundsOn == false) {
+//         return;
+//     }
+//     tone(SFXpin, NOTE_FS3, JUMP_DUR);
+// }
 
-    tone(SFXpin, NOTE_F4, CAN_DUR);
-}
+// void SoundsManager::playCanons() {
+//     if(SoundsManager::soundsOn == false) {
+//         return;
+//     }
 
-void SoundsManager::playDisappearing() {
-    if(SoundsManager::soundsOn == false) {
-        return;
-    }
+//     tone(SFXpin, NOTE_F4, CAN_DUR);
+// }
 
-    tone(SFXpin, NOTE_FS6, DIS_DUR);
-}
+// void SoundsManager::playDisappearing() {
+//     if(SoundsManager::soundsOn == false) {
+//         return;
+//     }
 
-void SoundsManager::playMenuScroll() {
-    if(SoundsManager::soundsOn == false) {
-        return;
-    }
+//     tone(SFXpin, NOTE_FS6, DIS_DUR);
+// }
 
-    tone(SFXpin, NOTE_B5, MENU_DUR);
-}
+// void SoundsManager::playMenuScroll() {
+//     if(SoundsManager::soundsOn == false) {
+//         return;
+//     }
 
-void SoundsManager::playMenuClick() {
-    if(SoundsManager::soundsOn == false) {
-        return;
-    }
+//     tone(SFXpin, NOTE_B5, MENU_DUR);
+// }
 
-    tone(SFXpin, NOTE_DS7, MENU_DUR);
-}
+// void SoundsManager::playMenuClick() {
+//     if(SoundsManager::soundsOn == false) {
+//         return;
+//     }
+
+//     tone(SFXpin, NOTE_DS7, MENU_DUR);
+// }

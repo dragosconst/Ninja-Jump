@@ -13,6 +13,7 @@
 #define DIS_DUR 400
 #define MENU_DUR 100
 
+
 #include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
@@ -34,11 +35,7 @@ public:
 
     static void setPlayer(DFRobotDFPlayerMini* player);
     static void setSounds(bool sounds);
-    static void playJump();
-    static void playCanons();
-    static void playDisappearing();
-    static void playMenuScroll();
-    static void playMenuClick();
+    static void playSound(int freq, int dur);
 };
 
 #endif

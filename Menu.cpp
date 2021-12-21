@@ -20,8 +20,7 @@ Menu::Menu() {
     this->firstLineShown = 0;
 }
 
-Menu::Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0, bool playingMenu = false) {
-    this->options = options;
+Menu::Menu(LiquidCrystal* lcd, bool greetingMenu = false, int timeDrawn = 0, bool playingMenu = false) {
     this->lcd = lcd;
     this->optionSelected = 0;
     this->greetingMenu = greetingMenu;
@@ -66,9 +65,9 @@ Menu& Menu::operator=(const Menu& other) {
 int Menu::getArduinoLine(int line, char* writeHere) {
     int currentLine = 0;
     size_t i;
-    for(i = 0; i < this->options->size() && currentLine != line; ++i) {
+    for(i = 0; i < this->optionsSize && currentLine != line; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         for(size_t j = 0; optionText[j]; ++j) {
             if(optionText[j] == '\n') {
@@ -79,9 +78,9 @@ int Menu::getArduinoLine(int line, char* writeHere) {
     // now i points to the first word on the corresponding line
     char rawText[MAX_OPTION_TEXT];
     size_t j = 0;
-    for(; i < this->options->size(); ++i) {
+    for(; i < this->optionsSize; ++i) {
         char optionText[MAX_OPTION_TEXT] = {0};
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         bool last = false;
         for(size_t k = 0; optionText[k]; ++k) {
@@ -153,19 +152,19 @@ void Menu::killSelf(Menu** currentMenu) {
          * It's assumed the first option in a greeting menu will be the transition option to the next menu.
          * 
          */
-        Option* currentOption = (*this->options)[this->optionSelected];
+        Option* currentOption = this->options[this->optionSelected];
         currentOption->focus(currentMenu);
     }
 }
 
 Point Menu::findCursorPosition() {
-    byte optionsLen = this->options->size();
+    byte optionsLen = this->optionsSize;
     byte line = 0, col = 0;
     // line will point to the "line" in the options (they are delimitied by \n) and col will point to the last character before the current word
     // meaning that, after iterating through a word, it will be placed exactly where the blink cursor needs to be for the next word (and so on)
     for(size_t i = 0; i < optionsLen; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         if(i == this->optionSelected) {
             return Point(col, line);
@@ -243,10 +242,10 @@ void Menu::blinkUpDown() {
 // could possibly be more efficient to store this somewhere in the object? will see later
 byte Menu::getLastLine() {
     byte line = 0;    
-    byte optionsLen = this->options->size();
+    byte optionsLen = this->optionsSize;
     for(size_t i = 0; i < optionsLen; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         for(size_t k = 0; optionText[k]; ++k) {
             if(optionText[k] == '\n') {
@@ -259,7 +258,7 @@ byte Menu::getLastLine() {
 
 // should check whether an option is focused or not, in order to propagate joystick inputs to it
 bool Menu::checkOptionFocused() {
-    Option* currentOption = (*this->options)[this->optionSelected];
+    Option* currentOption = this->options[this->optionSelected];
     return currentOption->isFocused();
 }
 
@@ -267,9 +266,9 @@ byte Menu::logicalLineLength(byte line) {
     byte currentLine = 0;
     byte optionCount = 0;
     size_t i;
-    for(i = 0; i < this->options->size(); ++i) {
+    for(i = 0; i < this->optionsSize; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         if(currentLine == line) {
             optionCount += 1;
@@ -289,9 +288,9 @@ byte Menu::optionLogPosInLine(byte line, Option* option) {
     byte currentLine = 0;
     byte optionCount = 0;
     size_t i;
-    for(i = 0; i < this->options->size(); ++i) {
+    for(i = 0; i < this->optionsSize; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         if(currentLine == line) {
             optionCount += 1;
@@ -311,9 +310,9 @@ Option* Menu::getOptionAtLogPos(byte line, byte optPos) {
     byte currentLine = 0;
     byte optionCount = 0;
     size_t i;
-    for(i = 0; i < this->options->size(); ++i) {
+    for(i = 0; i < this->optionsSize; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
         if(currentLine == line) {
             optionCount += 1;
@@ -333,8 +332,8 @@ Option* Menu::getOptionAtLogPos(byte line, byte optPos) {
 }
 
 byte Menu::getOptionVecPos(Option* option) {
-    for(size_t i = 0; i < this->options->size(); ++i) {
-        Option* currentOption = (*this->options)[i];
+    for(size_t i = 0; i < this->optionsSize; ++i) {
+        Option* currentOption = this->options[i];
         if(currentOption == option) {
             return i;
         }
@@ -345,8 +344,10 @@ void Menu::joystickInput(int xVal, int yVal) {
     if(this->greetingMenu)
         return;
 
+    SoundsManager::playSound(NOTE_B5, MENU_DUR);
+
     // propagate input to option
-    Option* currentOption = (*this->options)[this->optionSelected];
+    Option* currentOption = this->options[this->optionSelected];
     if(this->checkOptionFocused()) {
         currentOption->joystickInput(xVal, yVal, this);
         return;
@@ -363,7 +364,7 @@ void Menu::joystickInput(int xVal, int yVal) {
 
 
     if(xVal == 1) {
-        if(this->optionSelected != this->options->size() - 1) {
+        if(this->optionSelected != this->optionsSize - 1) {
             this->optionSelected += 1;
         }
         else {
@@ -375,7 +376,7 @@ void Menu::joystickInput(int xVal, int yVal) {
             this->optionSelected -= 1;
         }
         else {
-            this->optionSelected = this->options->size() - 1;
+            this->optionSelected = this->optionsSize - 1;
         }
     }
 
@@ -452,7 +453,9 @@ void Menu::joystickInput(int xVal, int yVal) {
 }
 
 void Menu::joystickClicked(Menu** currentMenu) {
-    Option* currentOption = (*this->options)[this->optionSelected];
+    SoundsManager::playSound(NOTE_DS7, MENU_DUR);
+
+    Option* currentOption = this->options[this->optionSelected];
     if(currentOption->isFocused()) {
         currentOption->unfocus(); // unfocus on second click, it makes sense for options that change values
     }
@@ -464,9 +467,9 @@ void Menu::joystickClicked(Menu** currentMenu) {
 // use this to change displayed value when changing numerical values on an option, i.e. contrast
 void Menu::updateOptionValue(Option* option) {
     byte line = 0, col = 1;
-    for(size_t i = 0; i < this->options->size(); ++i) {
+    for(size_t i = 0; i < this->optionsSize; ++i) {
         char optionText[MAX_OPTION_TEXT];
-        Option* crOption = (*this->options)[i];
+        Option* crOption = this->options[i];
         crOption->getTextValue(optionText);
 
         if(crOption == option) {
@@ -492,8 +495,8 @@ void Menu::updateOptionValue(Option* option) {
 
 // check if display values have changed
 void Menu::checkDisplayValues() {
-    for(size_t i = 0; i < this->options->size(); ++i) {
-        Option* crOption = (*this->options)[i];
+    for(size_t i = 0; i < this->optionsSize; ++i) {
+        Option* crOption = this->options[i];
         if(crOption->getType() != valueDisplay && crOption->getType() != nameOption) // arduino can't do downcasting using dynamic cast
             continue;
         if(crOption->getType() == valueDisplay) {
@@ -513,9 +516,14 @@ void Menu::checkDisplayValues() {
     }
 }
 
+void Menu::setOptions(Option** options, byte size) {
+    this->options = options;
+    this->optionsSize = size;
+}
+
 void Menu::freeOptions() { 
-    for(int i = this->options->size() - 1; i >= 0; --i) {
-        delete ((*this->options)[i]);
-        (*this->options).pop_back();
+    for(int i = this->optionsSize - 1; i >= 0; --i) {
+        delete (this->options[i]);
     }
+    delete this->options;
 }

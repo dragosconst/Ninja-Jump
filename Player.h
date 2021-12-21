@@ -5,6 +5,16 @@
 #define MAX_LIVES 2
 #define START_HEIGHT 10
 
+#define RONIN 250
+#define APPRENTICE 500
+#define NINJA 1000
+#define SAMURAI 1500
+#define ASSASSIN 2200
+#define MONK 2700
+#define SHOGUN 3300
+#define SEKIRO 4000
+
+
 #include "Arduino.h"
 #include "World.h"
 #include "FakeMatrix.h"
@@ -17,7 +27,6 @@ class Player {
 private:
     int x, y;
     int lx, ly;
-    int maxY;
     World* world;
     bool jumping;
     bool passedPlatform; // for restoring platform integrity after jumping through them
@@ -39,17 +48,13 @@ public:
     Player(int lives, int height);
     ~Player() {}
 
-    void decreaseHealth();
-    void increaseHeight(int amount);
-
     void move(int xVal, int yVal);
     bool onStableGround() const;
     void fall();
     void jump();
-    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true; this->fallDistance = 0; SoundsManager::playJump();}
+    void startJumping() {Player::lastJumped = millis(); Player::lastMoved = 0; this->jumping = true; this->fallDistance = 0; SoundsManager::playSound(NOTE_FS3, JUMP_DUR);}
     void stopJumping() { this->jumping = false;}
     void clear(int lives, int height, int x, int y);
-    static bool isInRange(byte x, byte y, byte sx, byte sy);
     void setPosition(Pos pos) { this->x = pos.j; this->y = pos.i; this->setLastPos(pos);}
     void setWorld(World* world) { this->world = world;}
     void setPassedPlatform(bool val) { this->passedPlatform = val;}
@@ -64,7 +69,7 @@ public:
     bool isFalling() const { return !this->onStableGround() && !this->jumping;}
     bool jumpedThroughPlatform() const { return this->passedPlatform;}
     int getLives() const { return this->lives;}
-    int getHeight() const { return this->height;}
+    int getHeight() const { return this->heightMax;}
     static int getYRange() { return Player::maxJump / Player::jumpInterval;}
     static int getXRange() { return Player::maxJump/Player::moveIntervalInAir;}
     int* getLivesAddr()  { return &this->lives;}

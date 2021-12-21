@@ -27,29 +27,29 @@ difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 
     //     Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.println();
 }
 
-World& World::operator=(const World& other) {
-    this->lc = other.lc;
-    this->player = other.player;
-    this->worldMap = other.worldMap;
-    this->difficultyStepX = other.difficultyStepX;
-    this->difficultyStepY = other.difficultyStepY;
-    this->difficulty = other.difficulty;
-    this->last = other.last;
-    this->secondLast = other.secondLast;
-    this->first = other.first;
-    return *this;
-}
-World::World(const World& other) {
-    this->lc = other.lc;
-    this->player = other.player;
-    this->worldMap = other.worldMap;
-    this->difficultyStepX = other.difficultyStepX;
-    this->difficultyStepY = other.difficultyStepY;
-    this->difficulty = other.difficulty;
-    this->last = other.last;
-    this->secondLast = other.secondLast;
-    this->first = other.first;
-}
+// World& World::operator=(const World& other) {
+//     this->lc = other.lc;
+//     this->player = other.player;
+//     this->worldMap = other.worldMap;
+//     this->difficultyStepX = other.difficultyStepX;
+//     this->difficultyStepY = other.difficultyStepY;
+//     this->difficulty = other.difficulty;
+//     this->last = other.last;
+//     this->secondLast = other.secondLast;
+//     this->first = other.first;
+//     return *this;
+// }
+// World::World(const World& other) {
+//     this->lc = other.lc;
+//     this->player = other.player;
+//     this->worldMap = other.worldMap;
+//     this->difficultyStepX = other.difficultyStepX;
+//     this->difficultyStepY = other.difficultyStepY;
+//     this->difficulty = other.difficulty;
+//     this->last = other.last;
+//     this->secondLast = other.secondLast;
+//     this->first = other.first;
+// }
 
 void World::scrollUp() {
     if(!this->player->jumpedThroughPlatform())

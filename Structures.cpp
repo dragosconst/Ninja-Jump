@@ -268,7 +268,7 @@ void DisappearingPlatform::activate(Player* player) {
         this->playedSound = false;
     }
     else if(millis() - this->lastSwitch >= DisappearingPlatform::switchInterval - DP_ALERT && !playedSound) {
-        SoundsManager::playDisappearing();
+        SoundsManager::playSound(NOTE_FS6, DIS_DUR);
         this->playedSound = true;
     }
 }
@@ -409,7 +409,7 @@ void Canon::activate(Player* player) {
     }
     else if(!this->isShooting && millis() - this->lastShot >= Canon::shootInterval) {
         this->isShooting = true;
-        SoundsManager::playCanons();
+        SoundsManager::playSound(NOTE_F4, CAN_DUR);
         return;
     }
 }

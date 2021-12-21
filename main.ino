@@ -6,7 +6,15 @@
 #include "RWHelper.h"
 #include "StateMachine.h"
 
-enum Difficulties {Easy = 0, Normal, Hard};
+#define WELCOME_SIZE 1  
+#define ABOUT_SIZE 2
+#define MAIN_SIZE 4
+#define SET_SIZE 8
+#define PLAY_SIZE 2
+#define HS_SIZE 7
+#define GO_SIZE 2
+#define CG_SIZE 2
+#define NAME_SIZE 2
 
 const byte dinPin = 11;
 const byte clockPin = 12;
@@ -63,7 +71,7 @@ byte matrixBrightness = 2;
 LiquidCrystal lcd(RSPin, EPin, D4, D5, D6, D7);
 
 StateMachine sm;
-int difficulty = Normal;
+int difficulty = 1;
 
 Player* player;
 World* world;
@@ -75,13 +83,12 @@ Option* grOptsMnArr[4];
 Option* grOptsStArr[8];
 Option* grOptsPlArr[2];
 Option* grOptsHsArr[7];
-Option* grOptsGoArr[1];
+Option* grOptsGoArr[2];
 Option* grOptsCgArr[2];
 Option* grOptsNmArr[2];
-Vector<Option*> grOpts(grOptsArr), grOptsAb(grOptsAbArr), grOptsMn(grOptsMnArr), grOptsSt(grOptsStArr), grOptsPl(grOptsPlArr), grOptsGo(grOptsGoArr),
-grOptsHs(grOptsHsArr), grOptsCg(grOptsCgArr), grOptsNm(grOptsNmArr);
 Menu* currentMenu;
 
+int currentScore;
 Menu* createWelcomeMenu();
 Menu* createMainMenu();
 Menu* createAboutMenu();
@@ -93,33 +100,40 @@ Menu* createCongratulationsMenu();
 Menu* createGameOverMenu();
 
 Menu* createWelcomeMenu() { 
-  Menu* menu = new Menu(&grOpts, &lcd, true, 3000);
+  Menu* menu = new Menu(&lcd, true, 3000);
   menu->clear();
   const char* _welcomeText = "   Welcome! \n\0";
+  Option** grOptsArr = new Option*[WELCOME_SIZE];
   MenuOption* _welcomeMessage = new MenuOption(_welcomeText, createMainMenu);
-  grOpts.push_back(_welcomeMessage);
+  grOptsArr[0] = _welcomeMessage;
+  menu->setOptions(grOptsArr, WELCOME_SIZE);
   return menu;
 }
 
 Menu* createMainMenu() {
+  Option** grOptsMnArr = new Option*[MAIN_SIZE];
   MenuOption* _playOption = new MenuOption("Play", createDisplayMenu);
   MenuOption*_settingsOption = new MenuOption("Settings\n", createSettingsMenu);
   MenuOption* _aboutOption = new MenuOption("About", createAboutMenu);
   MenuOption* _highScoreOption = new MenuOption("Scores\n", createScoreMenu);
-  grOptsMn.push_back(_playOption); grOptsMn.push_back(_settingsOption); grOptsMn.push_back(_aboutOption); grOptsMn.push_back(_highScoreOption);
-  Menu* menu = new Menu(&grOptsMn, &lcd, false);
+  grOptsMnArr[0] = _playOption; grOptsMnArr[1] = _settingsOption; grOptsMnArr[2] = _aboutOption; grOptsMnArr[3] = _highScoreOption;
+  Menu* menu = new Menu(&lcd, false);
+  menu->setOptions(grOptsMnArr, MAIN_SIZE);
   return menu;
 }
 
 Menu* createAboutMenu() {
+  Option** grOptsAbArr = new Option*[ABOUT_SIZE];
   MenuOption* _aboutLineOne = new MenuOption("Check my stuff\n", createMainMenu);
   MenuOption* _aboutLineTwo = new MenuOption("bit.ly/3EBftyx\n", createMainMenu);
-  grOptsAb.push_back(_aboutLineOne); grOptsAb.push_back(_aboutLineTwo);
-  Menu* menu = new Menu(&grOptsAb, &lcd, false);
+  grOptsAbArr[0] = _aboutLineOne; grOptsAbArr[1] = _aboutLineTwo;
+  Menu* menu = new Menu(&lcd, false);
+  menu->setOptions(grOptsAbArr, ABOUT_SIZE);
   return menu;
 }
 
 Menu* createSettingsMenu() {
+  Option** grOptsStArr = new Option*[SET_SIZE];
   SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::getVal(CONTRAST_ADDR), 10, RWHelper::writeContrast);
   SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::getVal(LCD_ADDR), 20, RWHelper::writeLCDBright);
   LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::getVal(LED_ADDR));
@@ -128,16 +142,21 @@ Menu* createSettingsMenu() {
   GameOption* _themeOption = new GameOption("Game theme", nullptr, 1, 2, RWHelper::getVal(RWHelper::themeAddr), themeOption);
   GameOption* _soundOption = new GameOption("Sounds", nullptr, 0, 1, RWHelper::getVal(RWHelper::soundAddr), soundOption);
   MenuOption* _backSetOption = new MenuOption("Back\n", createMainMenu);
-  grOptsSt.push_back(_contrastOption); grOptsSt.push_back(_brightOption); grOptsSt.push_back(_ledOption); grOptsSt.push_back(_diffOption); grOptsSt.push_back(_volOption); grOptsSt.push_back(_themeOption); grOptsSt.push_back(_soundOption); grOptsSt.push_back(_backSetOption);
-  Menu* menu = new Menu(&grOptsSt, &lcd, false);
+  grOptsStArr[0]  = _contrastOption; grOptsStArr[1]  = _brightOption; grOptsStArr[2]  = _ledOption; grOptsStArr[3]  = _diffOption; grOptsStArr[4]  = _volOption; grOptsStArr[5]  = _themeOption; grOptsStArr[6]  = _soundOption; grOptsStArr[7]  = _backSetOption;
+  Menu* menu = new Menu(&lcd, false);
+  menu->setOptions(grOptsStArr, SET_SIZE);
   return menu;
 }
 
 Menu* createScoreMenu() {
+  Menu* menu = new Menu(&lcd, false);
+  Option** grOptsHsArr = new Option*[HS_SIZE];
   MenuOption* _backFromScore = new MenuOption("Back\n", createMainMenu);
   if(RWHelper::getVal(HSNUM_ADDR) == 0) {
     GreetingOption* _noScores = new GreetingOption("No scores...\n");
-    grOptsHs.push_back(_noScores);
+    grOptsHsArr[0] = _noScores;
+    grOptsHsArr[1] = _backFromScore;
+    menu->setOptions(grOptsHsArr, 2);
   }
   else {
     // creating the score text is much more tedious than it seems, but it's mostly due to memory restrictions
@@ -164,44 +183,85 @@ Menu* createScoreMenu() {
       textVal[index++] = '\n';
       textVal[index] = '\0';
       GreetingOption* _score = new GreetingOption(textVal);
-      grOptsHs.push_back(_score);
+      grOptsHsArr[i - 1]  = _score;
     }
+    grOptsHsArr[RWHelper::getVal(HSNUM_ADDR)] = _backFromScore;
+    menu->setOptions(grOptsHsArr, RWHelper::getVal(HSNUM_ADDR) + 1);
   }
-  grOptsHs.push_back(_backFromScore);
-  Menu* menu = new Menu(&grOptsHs, &lcd, false);
   return menu;
 }
 
+GreetingOption* createRankOption() {
+  GreetingOption* _rankOption;
+  if(currentScore <= RONIN) {
+    _rankOption = new GreetingOption("Rank: Ronin\n");
+  }
+  else if(currentScore <= APPRENTICE) {
+    _rankOption = new GreetingOption("Rank: Fledgling\n");
+  }
+  else if(currentScore <= NINJA) {
+    _rankOption = new GreetingOption("Rank: Ninja\n");
+  }
+  else if(currentScore <= SAMURAI) {
+    _rankOption = new GreetingOption("Rank: Samurai\n");
+  }
+  else if(currentScore <= ASSASSIN) {
+    _rankOption = new GreetingOption("Rank: Asssassin\n");
+  }
+  else if(currentScore <= MONK) {
+    _rankOption = new GreetingOption("Rank: Monk\n");
+  }
+  else if(currentScore <= SHOGUN) {
+    _rankOption = new GreetingOption("Rank: Shogun\n");
+  }
+  else {
+    _rankOption = new GreetingOption("Rank: Sekiro\n");
+  }
+  return _rankOption;
+}
+
 Menu* createNameMenu() {
-  Menu* menu = new Menu(&grOptsNm, &lcd, false);
+  Option** grOptsNmArr = new Option*[NAME_SIZE];
+  Menu* menu = new Menu(&lcd, false);
   NameOption* _enterName = new NameOption("Name:", player, createMainMenu);
-  grOptsNm.push_back(_enterName);
+  GreetingOption* _rankOption = createRankOption();
+  grOptsNmArr[0] = _enterName; grOptsNmArr[1] = _rankOption;
+  menu->setOptions(grOptsNmArr, NAME_SIZE);
   return menu;
 }
 
 Menu* createCongratulationsMenu() {
-  Menu* menu = new Menu(&grOptsCg, &lcd, true, 2000);
+  Option** grOptsCgArr = new Option*[CG_SIZE];
+  currentScore = player->getHeight();
+  Menu* menu = new Menu(&lcd, true, 2000);
   MenuOption* _congratulations = new MenuOption("Congratulations\n", createNameMenu);
   GreetingOption* _congratulationsLine2 = new GreetingOption("on new high s.\n");
-  grOptsCg.push_back(_congratulations); grOptsCg.push_back(_congratulationsLine2);
+  grOptsCgArr[0] = _congratulations; grOptsCgArr[1] = _congratulationsLine2;
   SoundsManager::switchMenuState(false);
+  menu->setOptions(grOptsCgArr, CG_SIZE);
   return menu;
 }
 
 Menu* createDisplayMenu() {
-  Menu* menu = new Menu(&grOptsPl, &lcd, false, 0, true);
+  Option** grOptsPlArr = new Option*[PLAY_SIZE];
+  Menu* menu = new Menu(&lcd, false, 0, true);
   DisplayOption* _height = new DisplayOption("Height: ", player->getHeightAddr(), menu);
   DisplayOption* _lives = new DisplayOption("Lives: ", player->getLivesAddr(), menu);
-  grOptsPl.push_back(_height); grOptsPl.push_back(_lives);
+  grOptsPlArr[0]  =_height; grOptsPlArr[1] = _lives;
   SoundsManager::switchMenuState(false);
+  menu->setOptions(grOptsPlArr, PLAY_SIZE);
   return menu;
 }
 
 Menu* createGameOverMenu() {
+  Option** grOptsGoArr = new Option*[GO_SIZE];
+  currentScore = player->getHeight();
   MenuOption* _gameOverOption = new MenuOption("  Game over!\n", createMainMenu);
-  grOptsGo.push_back(_gameOverOption);
-  Menu* menu = new Menu(&grOptsGo, &lcd, true, 2000);
+  GreetingOption* _rankOption = createRankOption();
+  grOptsGoArr[0]  = _gameOverOption; grOptsGoArr[1]  = _rankOption;
+  Menu* menu = new Menu(&lcd, true, 2000);
   SoundsManager::switchMenuState(true);
+  menu->setOptions(grOptsGoArr, GO_SIZE);
   return menu;
 }
 

@@ -2,7 +2,6 @@
 #define MENU_H
 
 #include "Arduino.h"
-#include <Vector.h>
 #include "LiquidCrystal.h"
 #include "Options.h"
 
@@ -25,7 +24,8 @@ struct Point {
  */
 class Menu {
 private:
-    Vector<Option*>* options;
+    Option** options;
+    byte optionsSize;
     byte optionSelected;
     unsigned long lastLetterDrawn; // time at which the last letter was drawn
     byte currentLine; // current line being drawn
@@ -56,7 +56,7 @@ public:
     static bool upDownState;
 
     Menu();
-    Menu(Vector<Option*>* options, LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0, bool playinfgMenu=false);
+    Menu(LiquidCrystal* lcd, bool greetingMenu, int timeDrawn=0, bool playinfgMenu=false);
     Menu(const Menu& other);
     Menu& operator=(const Menu& other);
     ~Menu() {}
@@ -70,6 +70,7 @@ public:
     void joystickClicked(Menu** currentMenu);
     void updateOptionValue(Option* option);
     void checkDisplayValues();
+    void setOptions(Option** options, byte size);
     void freeOptions();
 
     bool isGreeting() const { return this->greetingMenu; }

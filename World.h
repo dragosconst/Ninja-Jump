@@ -67,8 +67,6 @@ public:
     
     World();
     World(LedControl* lc, Player* player, byte difficulty);
-    World(const World& other);
-    World& operator=(const World& other);
     ~World() {this->freeAllStructures();}
 
     void drawOnMatrix();

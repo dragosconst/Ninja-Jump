@@ -13,23 +13,13 @@ unsigned long Player::lastMovedJump = 0;
 unsigned long Player::lastFell = 0;
 
 Player::Player(int lives, int height) : lives(lives), height(height), jumping(false)
-, passedPlatform(false), maxY(10000), heightMax(height), fallDistance(0) { }
+, passedPlatform(false), heightMax(height), fallDistance(0) { }
 
-
-void Player::decreaseHealth() {
-    this->lives--;
-}
-
-void Player::increaseHeight(int amount) {
-    this->height += amount;
-}
 
 void Player::move(int xVal, int yVal) {
     if(xVal == 1) {
         if(x < World::numCols - 1 && !this->world->worldMap[Pos(this->y, this->x + 1)].check()) {
-            // this->x += 1;
             this->world->scrollRight();
-            // Serial.println("moving to the right");
         }
         else {
             Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
@@ -38,12 +28,7 @@ void Player::move(int xVal, int yVal) {
     }
     else if(xVal == -1) {
         if(x > 0 && !this->world->worldMap[Pos(this->y, this->x - 1)].check()) {
-            // this->x -= 1;
             this->world->scrollLeft();
-            // Serial.println("moving to the left");
-        }
-        else {
-            // Serial.println(!this->world->worldMap[Pos(this->y, this->x - 1)].check());
         }
         this->world->worldMap[Pos(this->y, this->x)] = 1;
     }
@@ -52,21 +37,6 @@ void Player::move(int xVal, int yVal) {
             this->lx = this->x;
             this->ly = this->y;
         }
-    }
-}
-
-// This will check if the player could reach (x, y) by jumping from (sx, sy)
-// It is assumed that y <= sy
-bool Player::isInRange(byte x,  byte y, byte sx, byte sy) {
-    if(y > sy - Player::maxJump / Player::jumpInterval)
-        return false;
-    // the furthest it can continously move on the x axis in one jump
-    int posx =  Player::maxJump / Player::moveIntervalInAir;
-    if(x >= sx) {
-        return sx + posx >= x;
-    }
-    else {
-        return sx - posx <= x;
     }
 }
 
