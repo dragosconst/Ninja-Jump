@@ -124,7 +124,7 @@ public:
 class NameOption : public Option {
 private:
     static const char alphabet[62];
-    Player* player;
+    int score;
     byte vals[3];
     char name[4];
     Menu* (*nextMenu)(void);
@@ -134,7 +134,7 @@ private:
     bool updatedIndex;
 public:
     NameOption() {}
-    NameOption(const char* text, Player* player, Menu* (*nextMenu)(void));
+    NameOption(const char* text, int score, Menu* (*nextMenu)(void));
     ~NameOption() {}
 
     void focus(Menu** currentMenu);

@@ -32,6 +32,7 @@ void StateMachine::updateState() {
         oldMenu->freeOptions();
         delete oldMenu;
 
+        this->lc->clearDisplay(0);
         delete *this->world;
         delete *this->player;
     }

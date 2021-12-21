@@ -273,7 +273,7 @@ void GameOption::getTextValue(char* writeHere) {
 
 const char NameOption::alphabet[62] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-NameOption::NameOption(const char* text, Player* player, Menu* (*nextMenu)(void)) : Option(nameOption, text), player(player),
+NameOption::NameOption(const char* text, int score, Menu* (*nextMenu)(void)) : Option(nameOption, text), score(score),
  crChar(0), crIndex(10), updatedIndex(false), nextMenu(nextMenu) {
     for(byte j = 0; j < 3; ++j) {
         this->vals[j] = 10;
@@ -291,9 +291,7 @@ void NameOption::unfocus() {
     if(crChar == 3) {
         this->inFocus = false;
         this->name[3] == '\0';
-        Serial.println(this->player->getHeight());
-        RWHelper::writeHigh(this->player->getHeight(), this->name);
-        this->player->clear(3, 10, 2, 14);
+        RWHelper::writeHigh(this->score, this->name);
         Menu* oldMenu = *currentMenu;
         (*currentMenu)->clear();
         *currentMenu = this->nextMenu();

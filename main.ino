@@ -196,7 +196,7 @@ GreetingOption* createRankOption() {
     _rankOption = new GreetingOption("Rank: Samurai\n");
   }
   else if(currentScore <= ASSASSIN) {
-    _rankOption = new GreetingOption("Rank: Asssassin\n");
+    _rankOption = new GreetingOption("Rank: Assassin\n");
   }
   else if(currentScore <= MONK) {
     _rankOption = new GreetingOption("Rank: Monk\n");
@@ -213,7 +213,7 @@ GreetingOption* createRankOption() {
 Menu* createNameMenu() {
   Option** grOptsNmArr = new Option*[NAME_SIZE];
   Menu* menu = new Menu(&lcd, false);
-  NameOption* _enterName = new NameOption("Name:", player, createMainMenu);
+  NameOption* _enterName = new NameOption("Name:", currentScore, createMainMenu);
   GreetingOption* _rankOption = createRankOption();
   grOptsNmArr[0] = _enterName; grOptsNmArr[1] = _rankOption;
   menu->setOptions(grOptsNmArr, NAME_SIZE);
