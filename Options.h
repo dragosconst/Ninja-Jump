@@ -1,7 +1,10 @@
 #ifndef OPTION_H
 #define OPTION_H
+
 #define MAX_OPTION_TEXT 18
-#define VOL_0 20
+#define VOL_0 25
+#define NORMAL 1
+#define HARD 2
 
 #include "Arduino.h"
 #include <Vector.h>
@@ -21,7 +24,8 @@
 // 7. greeting - might be necessary for game over and welcome screens
 // 8. volume option for the music
 // 9. change in-game music theme
-enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting, volumeOption, themeOption};
+// 10. turn off sounds
+enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting, volumeOption, themeOption, soundOption};
 
 class Menu;
 
@@ -69,11 +73,10 @@ private:
     byte baseValue;
     byte currentValue;
     byte stepValue;
-    bool last;
     void (*eepromUpdate)(byte);
 public:
     SystemOption() {}
-    SystemOption(const char* text, byte pin, byte baseValue, byte currentValue, byte stepValue, bool last, void (*eepromUpdate)(byte));
+    SystemOption(const char* text, byte pin, byte baseValue, byte currentValue, byte stepValue, void (*eepromUpdate)(byte));
     ~SystemOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
@@ -86,12 +89,11 @@ class LEDOption : public Option {
 private:
     LedControl* lc;
     byte brightValue;
-    bool last;
 
     void updateMatrix();
 public:
     LEDOption() {}
-    LEDOption(const char* text, LedControl* lc, byte brightValue, bool last);
+    LEDOption(const char* text, LedControl* lc, byte brightValue);
     ~LEDOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true; this->updateMatrix(); }
@@ -103,19 +105,19 @@ public:
 class GameOption : public Option {
 private:
     int* valAddr; // address of the value we want to change
-    byte baseValue;
+    byte minVal;
+    byte maxVal;
     byte currentValue;
-    byte stepValue;
-    byte possibleSteps;
-    bool last;
+
+    byte transformVolume() const { return this->currentValue + VOL_0;}
 public:
     GameOption() {}
-    GameOption(const char* text, int* valAddr, byte baseValue, byte currentValue, byte stepValue, byte possibleSteps, bool last);
+    GameOption(const char* text, int* valAddr, byte minVal, byte maxVal, byte currentValue, OptionType type);
     ~GameOption() {}
 
     void focus(Menu** currentMenu) { this->inFocus = true;}
-    void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus() { this->inFocus = false;RWHelper::writeByte(LCD_ADDR,this->currentValue);}
+    void joystickInput(int xVal, int yVal, Menu* currentMenu);  
+    void unfocus();
     void getTextValue(char* writeHere);
 };
 
@@ -147,14 +149,13 @@ class DisplayOption : public Option {
 private:
     int* value; // using a pointer to the value so we don't have to bother with getters and setters
     byte oldValue;
-    bool last;
     Menu* currentMenu;
     long lastChecked;
 public:
     static const byte checkInterval; // interval at which the value is checked for changes
     
     DisplayOption() {}
-    DisplayOption(const char* text, int* value, bool last, Menu* currentMenu);
+    DisplayOption(const char* text, int* value, Menu* currentMenu);
     ~DisplayOption() {}
 
     void focus(Menu** currentMenu) {} // these won't ever fire, this class just displays a value
@@ -173,37 +174,6 @@ public:
     void focus(Menu** currentMenu) {}
     void joystickInput(int xVal, int yVal, Menu* currentMenu) {} 
     void unfocus() {}
-    void getTextValue(char* writeHere);
-};
-
-class VolumeOption : public Option {
-private:
-    byte volume;
-    bool last;
-    byte transformVolume() const { return this->volume + VOL_0;}
-public:
-    VolumeOption() {}
-    VolumeOption(const char* text, byte vol, bool last);
-    ~VolumeOption() {}
-
-    void focus(Menu** currentMenu) { this->inFocus = true;}
-    void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus();
-    void getTextValue(char* writeHere);
-};
-
-class ThemeOption : public Option {
-private:
-    byte theme;
-    bool last;
-public:
-    ThemeOption() {}
-    ThemeOption(const char* text, byte theme, bool last);
-    ~ThemeOption() {}
-
-    void focus(Menu** currentMenu) { this->inFocus = true;}
-    void joystickInput(int xVal, int yVal, Menu* currentMenu);
-    void unfocus();
     void getTextValue(char* writeHere);
 };
 

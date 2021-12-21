@@ -3,11 +3,11 @@
 
 int8_t SoundsManager::ingame_theme = INGAME_THEME_1;
 bool SoundsManager::inMenu = true;
-bool SoundsManager::soundsOff = false;
+bool SoundsManager::soundsOn = true;
 DFRobotDFPlayerMini* SoundsManager::player = nullptr;
 
 void SoundsManager::playTheme() {
-    if(SoundsManager::soundsOff == true) {
+    if(SoundsManager::soundsOn == false) {
         return;
     }
 
@@ -29,7 +29,13 @@ void SoundsManager::setPlayer(DFRobotDFPlayerMini* player) {
 }
 
 void SoundsManager::setSounds(bool sounds) {
-    SoundsManager::soundsOff = sounds;
+    if(sounds == false && sounds != SoundsManager::soundsOn) {
+        SoundsManager::player->pause();
+    }
+    else if(sounds == true && sounds != SoundsManager::soundsOn) {
+        SoundsManager::player->start();
+    }
+    SoundsManager::soundsOn = sounds;
 }
 
 void SoundsManager::changeInGame(int8_t newVal) {
@@ -41,14 +47,14 @@ void SoundsManager::changeVolume(int8_t vol) {
 }
 
 void SoundsManager::playJump() {
-    if(SoundsManager::soundsOff == true) {
+    if(SoundsManager::soundsOn == false) {
         return;
     }
     tone(SFXpin, NOTE_FS3, JUMP_DUR);
 }
 
 void SoundsManager::playCanons() {
-    if(SoundsManager::soundsOff == true) {
+    if(SoundsManager::soundsOn == false) {
         return;
     }
 
@@ -56,7 +62,7 @@ void SoundsManager::playCanons() {
 }
 
 void SoundsManager::playDisappearing() {
-    if(SoundsManager::soundsOff == true) {
+    if(SoundsManager::soundsOn == false) {
         return;
     }
 
@@ -64,7 +70,7 @@ void SoundsManager::playDisappearing() {
 }
 
 void SoundsManager::playMenuScroll() {
-    if(SoundsManager::soundsOff == true) {
+    if(SoundsManager::soundsOn == false) {
         return;
     }
 
@@ -72,7 +78,7 @@ void SoundsManager::playMenuScroll() {
 }
 
 void SoundsManager::playMenuClick() {
-    if(SoundsManager::soundsOff == true) {
+    if(SoundsManager::soundsOn == false) {
         return;
     }
 

@@ -10,13 +10,13 @@ enum Difficulties {Easy = 0, Normal, Hard};
 
 const byte dinPin = 11;
 const byte clockPin = 12;
-const byte loadPin = A5;
+const byte loadPin = A3;
 
 const byte xPin = A0;
 const byte yPin = A1;
 const byte swPin = A2; // don't have enough pins unfortunately
 
-const byte btPin = A3;
+const byte btPin = A5;
 bool btnState = HIGH;
 byte btDebounce = 50;
 byte btReading = HIGH;
@@ -72,7 +72,7 @@ World* world;
 Option* grOptsArr[1];
 Option* grOptsAbArr[2];
 Option* grOptsMnArr[4];
-Option* grOptsStArr[7];
+Option* grOptsStArr[8];
 Option* grOptsPlArr[2];
 Option* grOptsHsArr[7];
 Option* grOptsGoArr[1];
@@ -120,14 +120,15 @@ Menu* createAboutMenu() {
 }
 
 Menu* createSettingsMenu() {
-  SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::getVal(CONTRAST_ADDR), 10, true, RWHelper::writeContrast);
-  SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::getVal(LCD_ADDR), 20, true, RWHelper::writeLCDBright);
-  LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::getVal(LED_ADDR), true);
-  GameOption* _diffOption = new GameOption("Difficulty", &difficulty, difficulty, RWHelper::getVal(DIFF_ADDR), 1, 3, true);
-  VolumeOption* _volOption = new VolumeOption("Volume", 10, true);
-  ThemeOption* _themeOption = new ThemeOption("Game theme", 0, true);
+  SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::getVal(CONTRAST_ADDR), 10, RWHelper::writeContrast);
+  SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::getVal(LCD_ADDR), 20, RWHelper::writeLCDBright);
+  LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::getVal(LED_ADDR));
+  GameOption* _diffOption = new GameOption("Diff.", &difficulty, 1, 2, RWHelper::getVal(DIFF_ADDR), gameValue);
+  GameOption* _volOption = new GameOption("Volume", nullptr, 0, 5, RWHelper::getVal(RWHelper::volAddr), volumeOption);
+  GameOption* _themeOption = new GameOption("Game theme", nullptr, 1, 2, RWHelper::getVal(RWHelper::themeAddr), themeOption);
+  GameOption* _soundOption = new GameOption("Sounds", nullptr, 0, 1, RWHelper::getVal(RWHelper::soundAddr), soundOption);
   MenuOption* _backSetOption = new MenuOption("Back\n", createMainMenu);
-  grOptsSt.push_back(_contrastOption); grOptsSt.push_back(_brightOption); grOptsSt.push_back(_ledOption); grOptsSt.push_back(_diffOption); grOptsSt.push_back(_volOption); grOptsSt.push_back(_themeOption); grOptsSt.push_back(_backSetOption);
+  grOptsSt.push_back(_contrastOption); grOptsSt.push_back(_brightOption); grOptsSt.push_back(_ledOption); grOptsSt.push_back(_diffOption); grOptsSt.push_back(_volOption); grOptsSt.push_back(_themeOption); grOptsSt.push_back(_soundOption); grOptsSt.push_back(_backSetOption);
   Menu* menu = new Menu(&grOptsSt, &lcd, false);
   return menu;
 }
@@ -189,8 +190,8 @@ Menu* createCongratulationsMenu() {
 
 Menu* createDisplayMenu() {
   Menu* menu = new Menu(&grOptsPl, &lcd, false, 0, true);
-  DisplayOption* _height = new DisplayOption("Height: ", player->getHeightAddr(), true, menu);
-  DisplayOption* _lives = new DisplayOption("Lives: ", player->getLivesAddr(), true, menu);
+  DisplayOption* _height = new DisplayOption("Height: ", player->getHeightAddr(), menu);
+  DisplayOption* _lives = new DisplayOption("Lives: ", player->getLivesAddr(), menu);
   grOptsPl.push_back(_height); grOptsPl.push_back(_lives);
   SoundsManager::switchMenuState(false);
   return menu;
@@ -211,9 +212,11 @@ void setup() {
   if(!DFPplayer.begin(mp3Serial)) {
     Serial.println("s a busit");
   }
- SoundsManager::setPlayer(&DFPplayer);
- SoundsManager::changeVolume(30);
- SoundsManager::playTheme();
+  SoundsManager::setPlayer(&DFPplayer);
+  SoundsManager::changeVolume(VOL_0 + RWHelper::getVal(RWHelper::volAddr));
+  SoundsManager::changeInGame(RWHelper::getVal(RWHelper::themeAddr) + 1);
+  SoundsManager::playTheme();
+  SoundsManager::setSounds(RWHelper::getVal(RWHelper::soundAddr));
 
 
   // tone(SFXpin, 300);

@@ -26,6 +26,7 @@ private:
 public:
     static const byte volAddr;
     static const byte themeAddr;
+    static const byte soundAddr;
 
     static void clear();
     static void writeContrast(byte value);

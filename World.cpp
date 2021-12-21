@@ -361,8 +361,8 @@ BoundingBox World::getBestRange(BoundingBox structure) {
         for(int8_t x = structure.x; x <= structure.x + structure.width; ++x) {
             if(this->worldMap[Pos(y, x)].check() || structure.fillOnes) {
 
-                if(topy > max(y - Player::maxJump / Player::jumpInterval + 1, 0)) {
-                    topy = max(y - Player::maxJump / Player::jumpInterval + 1, 0);
+                if(topy > max(y - Player::maxJump / Player::jumpInterval, 0)) {
+                    topy = max(y - Player::maxJump / Player::jumpInterval, 0);
                     height = y - topy;
                     leftx = max(x - Player::maxJump / Player::moveIntervalInAir, 0);
                     width = min(2 * Player::maxJump / Player::moveIntervalInAir, World::numCols - 1 - leftx);

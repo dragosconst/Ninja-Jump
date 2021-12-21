@@ -3,6 +3,7 @@
 
 const byte RWHelper::volAddr = HSNUM_ADDR + HIGH_STORED * (sizeof(int) + CHAR_LIMIT * sizeof(char));
 const byte RWHelper::themeAddr = RWHelper::volAddr + sizeof(byte);
+const byte RWHelper::soundAddr = RWHelper::themeAddr + sizeof(byte);
 
 void RWHelper::clear() {
     byte highScoreSize = sizeof(int) + CHAR_LIMIT * sizeof(char);

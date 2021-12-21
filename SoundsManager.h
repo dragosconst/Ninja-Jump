@@ -23,7 +23,7 @@ class SoundsManager {
 private:
     static DFRobotDFPlayerMini* player;
     static int8_t ingame_theme;
-    static bool inMenu, soundsOff;
+    static bool inMenu, soundsOn;
 
 public:
 
