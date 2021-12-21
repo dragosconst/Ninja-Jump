@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "World.h"
 
-const byte World::numRows = 24;
+const byte World::numRows = 29;
 const byte World::numCols = 24;
 
 World::World() {
@@ -184,7 +184,7 @@ void World::moveAllStructsBy(int8_t yVal, int8_t xVal) {
 // check if the last structure is now in the panning camera, in which case generate a new last structure
 void World::checkCamera() {
     // if(this->last.x >= 8 && this->last.x < 16 && this->last.y >= 12 && this->last.y < 20) {
-    if(this->intersect(last, BoundingBox(8, 12, 7, 7))) {
+    if(this->intersect(last, BoundingBox(CAMERA_X, CAMERA_Y, CAMERA_DIM - 1, CAMERA_DIM - 1))) {
         // Serial.println("huh");
         // Serial.print(this->last.x); Serial.print(" "); Serial.print(this->last.y); Serial.print(" "); Serial.print(this->last.height); Serial.print(" "); Serial.print(this->last.width); Serial.println();
         // Serial.print(this->secondLast.x); Serial.print(" "); Serial.print(this->secondLast.y); Serial.print(" "); Serial.print(this->secondLast.height); Serial.print(" "); Serial.print(this->secondLast.width); Serial.println();
@@ -500,9 +500,9 @@ void World::drawOnMatrix() {
     int row = 0;
     this->worldMap[Pos(this->player->getY(), this->player->getX())] = 1;
 
-    for(int i = 12; i < 20; ++i) {
+    for(int i = CAMERA_Y; i < CAMERA_Y + CAMERA_DIM; ++i) {
         int _col = 0;
-        for(int j = 8; j < 16; ++j) {
+        for(int j = CAMERA_X; j < CAMERA_X + CAMERA_DIM; ++j) {
             int actual_row = _col;
             int col = row; 
             this->lc->setLed(0, col, actual_row, this->worldMap[Pos(i, j)].check());

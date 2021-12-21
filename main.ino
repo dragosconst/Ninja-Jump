@@ -103,10 +103,10 @@ Menu* createWelcomeMenu() {
 Menu* createMainMenu() {
   Option** grOptsMnArr = new Option*[MAIN_SIZE];
   MenuOption* _playOption = new MenuOption("Play", createDisplayMenu);
-  MenuOption*_settingsOption = new MenuOption("Settings\n", createSettingsMenu);
-  MenuOption* _aboutOption = new MenuOption("About", createAboutMenu);
+  MenuOption*_settingsOption = new MenuOption("Settings", createSettingsMenu);
+  MenuOption* _aboutOption = new MenuOption("About\n", createAboutMenu);
   MenuOption* _highScoreOption = new MenuOption("Scores\n", createScoreMenu);
-  grOptsMnArr[0] = _playOption; grOptsMnArr[1] = _settingsOption; grOptsMnArr[2] = _aboutOption; grOptsMnArr[3] = _highScoreOption;
+  grOptsMnArr[0] = _playOption; grOptsMnArr[2] = _settingsOption; grOptsMnArr[3] = _aboutOption; grOptsMnArr[1] = _highScoreOption;
   Menu* menu = new Menu(&lcd, false);
   menu->setOptions(grOptsMnArr, MAIN_SIZE);
   return menu;
@@ -227,7 +227,7 @@ Menu* createCongratulationsMenu() {
   MenuOption* _congratulations = new MenuOption("Congratulations\n", createNameMenu);
   GreetingOption* _congratulationsLine2 = new GreetingOption("on new high s.\n");
   grOptsCgArr[0] = _congratulations; grOptsCgArr[1] = _congratulationsLine2;
-  SoundsManager::switchMenuState(false);
+  SoundsManager::switchMenuState(true);
   menu->setOptions(grOptsCgArr, CG_SIZE);
   return menu;
 }
@@ -264,7 +264,7 @@ void setup() {
   }
   SoundsManager::setPlayer(&DFPplayer);
   SoundsManager::changeVolume(VOL_0 + RWHelper::getVal(RWHelper::volAddr));
-  SoundsManager::changeInGame(RWHelper::getVal(RWHelper::themeAddr) + 1);
+  SoundsManager::changeInGame(RWHelper::getVal(RWHelper::themeAddr));
   SoundsManager::playTheme();
   SoundsManager::setSounds(RWHelper::getVal(RWHelper::soundAddr));
 

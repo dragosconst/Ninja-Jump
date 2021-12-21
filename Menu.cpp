@@ -90,13 +90,13 @@ int Menu::getArduinoLine(int line, char* writeHere) {
         }
         if(j < 16 && !last) {
             rawText[j++] = ' ';
+            rawText[j++] = ' ';
         }
         if(last)
             break;
     }
     rawText[j] = '\0';
 
-    // maybe add spacing in the future
     for(size_t i = 0; rawText[i]; ++i) {
         writeHere[i] = rawText[i];
     }
@@ -177,7 +177,7 @@ Point Menu::findCursorPosition() {
             }
         }
         if(col)
-            col += 1;
+            col += 2;
     }
 }
 
