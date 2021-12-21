@@ -8,8 +8,8 @@
 #define INGAME_FIRST_THEME 1
 #define INGAME_SECOND_THEME 2
 
-#define JUMP_DUR 500
-#define CAN_DUR 1000
+#define JUMP_DUR 200
+#define CAN_DUR 100
 #define DIS_DUR 400
 #define MENU_DUR 100
 

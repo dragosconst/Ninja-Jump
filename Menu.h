@@ -5,7 +5,6 @@
 #include "LiquidCrystal.h"
 #include "Options.h"
 
-enum GameStates {BrowsingMenus, PlayingGame};
 class Option;
 
 struct Point {

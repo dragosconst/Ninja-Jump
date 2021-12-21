@@ -8,7 +8,7 @@ World::World() {
 }
 
 World::World(LedControl* lc, Player* player, byte difficulty) : lc(lc), player(player), difficulty(difficulty),
-difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 3) {
+difficultyStepY(Player::getYRange() / 3), difficultyStepX(Player::getXRange() / 3), justDisappeared(false) {
     this->worldMap = FakeMatrix(World::numRows, World::numCols / 8);
     this->first = nullptr;
     this->generateFromLast(true);
@@ -233,7 +233,10 @@ BoundingBox World::generateLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor
 //*___*
 //_***_
 BoundingBox World::generatePointyLine(int8_t i, int8_t jst, int8_t jend, int8_t anchor) {
-    int8_t where = random(jst, jend); 
+    int8_t where = random(jst, jend);
+    if(max(where, anchor) - min(where, anchor) < 2) {
+        where = anchor + 2;
+    }
     for(int8_t j = min(where, anchor); j <= max(where, anchor); ++j) {
         if(j == min(where, anchor) || j == max(where, anchor)) {
             this->worldMap[Pos(i - 1, j)] = 1;
@@ -324,17 +327,35 @@ BoundingBox World::generateCanon(int8_t i, int8_t j) {
 // generate a structure in given params
 BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_last, int8_t y_last, int8_t xMax, int8_t yMax) {
     byte x = random(x_first, x_last), y = random(y_first, y_last); // anchor point of structure
-    // Serial.print("X_first is "); Serial.print(x_first); Serial.print(" x_last is "); Serial.print(x_last); Serial.print(" y_first is "); Serial.print(y_first); Serial.print(" y_last is "); Serial.println(y_last);
-    // Serial.print("y is "); Serial.println(y);
     if(y == World::numRows - 1) {
         return this->generateLine(y, x_first, xMax, x);
     }
     else {
-        byte dice = random(GEN_TYPES);
+        byte max;
+        if(player->getHeight() >= CANON) {
+            max = 6;
+        }
+        else if(player->getHeight() >= DISAPPEARING) {
+            max = 5;
+        }
+        else if(player->getHeight() >= MOVING) {
+            max = 4;
+        }
+        else if(player->getHeight() >= PAGODAS) {
+            max = 3;
+        }
+        else {
+            max = 2;
+        }
+        
+        byte dice = random(max);
         if(dice == GEN_LINE) {
            return this->generateLine(y, x_first, xMax, x);
         }
         else if(dice == GEN_POINTY) {
+            if(x == xMax - 1) {
+                x--;
+            }
             return this->generatePointyLine(y, x_first, xMax, x);
         }
         else if(dice == GEN_PAGODA) {
@@ -344,7 +365,13 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
             return this->generateMovingPlatform(y, x);
         }
         else if(dice == GEN_DISAPP) {
+            // avoid chaining disappearing platforms because it's honestly very confusing to navigate
+            if(this->justDisappeared) {
+                this->justDisappeared = false;
+                return this->generateMovingPlatform(y, x);
+            }
             // disappearing platforms have preset shapes that require a certain positioning, relative to the last generated structure
+            this->justDisappeared = true;
             return this->generateDisappPlatform(y_first, x_first + 4);
         }
         else if(dice == GEN_CANON) {
@@ -360,7 +387,6 @@ BoundingBox World::getBestRange(BoundingBox structure) {
     for(int8_t y = structure.y; y <= structure.y + structure.height; ++y) {
         for(int8_t x = structure.x; x <= structure.x + structure.width; ++x) {
             if(this->worldMap[Pos(y, x)].check() || structure.fillOnes) {
-
                 if(topy > max(y - Player::maxJump / Player::jumpInterval, 0)) {
                     topy = max(y - Player::maxJump / Player::jumpInterval, 0);
                     height = y - topy;
@@ -456,6 +482,7 @@ void World::generateFromLast(bool first = false) {
         }
         else {
             BoundingBox rangeLast = this->getBestRange(this->last);
+            Serial.print("last x = "); Serial.print(last.x); Serial.print(" last y = "); Serial.println(last.y);
             // Serial.print("range last is: x = "); Serial.print(rangeLast.x); Serial.print(" y = "); Serial.print(rangeLast.y); Serial.print(" height = "); Serial.print(rangeLast.height); Serial.print(" width = "); Serial.println(rangeLast.width);
             BoundingBox rangeSecondLast = this->getBestRange(this->secondLast);
             // Serial.print("range second last is: x = "); Serial.print(rangeSecondLast.x); Serial.print(" y = "); Serial.print(rangeSecondLast.y); Serial.print(" height = "); Serial.print(rangeSecondLast.height); Serial.print(" width = "); Serial.println(rangeSecondLast.width);

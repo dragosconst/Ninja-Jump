@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "RWHelper.h"
 
-const byte RWHelper::volAddr = HSNUM_ADDR + HIGH_STORED * (sizeof(int) + CHAR_LIMIT * sizeof(char));
+const byte RWHelper::volAddr = HSNUM_ADDR + sizeof(byte) + HIGH_STORED * (sizeof(int) + CHAR_LIMIT * sizeof(char));
 const byte RWHelper::themeAddr = RWHelper::volAddr + sizeof(byte);
 const byte RWHelper::soundAddr = RWHelper::themeAddr + sizeof(byte);
 

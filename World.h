@@ -10,6 +10,10 @@
 #define GEN_CANON 5
 #define PLAYER_X 12
 #define PLAYER_Y 16
+#define PAGODAS 200
+#define MOVING 500
+#define DISAPPEARING 800
+#define CANON 1200
 
 #include "Arduino.h"
 #include "Player.h"
@@ -37,6 +41,7 @@ private:
     BoundingBox last, secondLast;
     byte difficulty;
     StructNode* first;
+    bool justDisappeared;
 
     byte difficultyStepY, difficultyStepX;
 

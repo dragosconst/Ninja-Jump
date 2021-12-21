@@ -5,6 +5,8 @@
 #include "Menu.h"
 #include "RWHelper.h"
 
+enum GameStates {BrowsingMenus, PlayingGame};
+
 Menu* createCongratulationsMenu();
 Menu* createGameOverMenu();
 Menu* createDisplayMenu();

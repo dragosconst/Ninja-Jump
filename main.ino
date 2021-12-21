@@ -76,16 +76,6 @@ int difficulty = 1;
 Player* player;
 World* world;
 
-// should probably dynamically alocate these too
-Option* grOptsArr[1];
-Option* grOptsAbArr[2];
-Option* grOptsMnArr[4];
-Option* grOptsStArr[8];
-Option* grOptsPlArr[2];
-Option* grOptsHsArr[7];
-Option* grOptsGoArr[2];
-Option* grOptsCgArr[2];
-Option* grOptsNmArr[2];
 Menu* currentMenu;
 
 int currentScore;

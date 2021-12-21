@@ -7,7 +7,6 @@
 #define HARD 2
 
 #include "Arduino.h"
-#include <Vector.h>
 #include "LiquidCrystal.h"
 #include <LedControl.h>
 #include "Menu.h"
