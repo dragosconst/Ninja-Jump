@@ -67,3 +67,20 @@ Since I've used both ints and bytes for my relevant data, I've decided to use th
 As far as I'm concerned, this is the only bug and I'm not even sure if I haven't accidentally patched it or not (I haven't been able to replicate it for a while). Sometimes, the last structure spawned will be one point or a line with a length of two points, and then the program just stops spawning new platforms. It's not a memory leak, since dying succesfully brings me to the title screen (and I can start a new playthrough afterwards), and it almost certainly isn't caused by one of the _Structure_ classes. Due to the difficulty of even replicating this behaviour, I can't say for certain whether it's completely gone or not.
 
 My theory is that what's really happening is that another line\pointy line structure (the ones that don't have a class associated to them) is being spawned after the Lonely Point. However, the player does some sort of mistake and falls a couple lines back on an older platform. After they climb back, the map was scrolled down a couple lines during the fall and the structure ends up being **deleted**, but since there's no object handling it, there's nothing called to draw it back on the map. At some point I've increased the amount of lines the matrix has and that might've patched it, but again, since I haven't been able to closely examine the bug, I can't say it's for certain.
+
+## Components used
+I've used one LCD screen, one LED matrix and one matrix driver, one MP3 player, two buzzers, one pushbutton, one joystick, 5 resistors, three capacitors and a **lot** of wires.
+
+Pictures:
+
+![image](https://user-images.githubusercontent.com/38582034/147155216-112f3cea-b06c-4a89-96de-0f0cd54f3e74.png)
+
+![image](https://user-images.githubusercontent.com/38582034/147155243-f756635a-41c8-488c-8b4e-6feb2eb97aee.png)
+![image](https://user-images.githubusercontent.com/38582034/147155261-7b2a2c9a-dd81-4e93-b348-d28b3d14310d.png)
+
+![image](https://user-images.githubusercontent.com/38582034/147155274-3f5ece96-d51e-46db-8a09-9258394c6965.png)
+
+![image](https://user-images.githubusercontent.com/38582034/147155305-88c2aa74-f409-4eab-b0a8-975f7104893e.png)
+
+![image](https://user-images.githubusercontent.com/38582034/147155315-6e31b63b-f623-48cb-95e0-4bef41288514.png)
+
