@@ -6,6 +6,10 @@
 #define NORMAL 1
 #define HARD 2
 
+#define ALPH_SIZE 65
+#define NAME_LIMIT 3
+#define LETTER_FLASH 600
+
 #include "Arduino.h"
 #include "LiquidCrystal.h"
 #include <LedControl.h>
@@ -123,15 +127,17 @@ public:
 // this also acts as sort of a pseudo-Menu option, beacause I thought it would be better to instantly transition after inputting your name
 class NameOption : public Option {
 private:
-    static const char alphabet[62];
+    static const char alphabet[ALPH_SIZE];
     int score;
-    byte vals[3];
-    char name[4];
+    byte vals[NAME_LIMIT];
+    char name[NAME_LIMIT + 1];
     Menu* (*nextMenu)(void);
     Menu** currentMenu;
     byte crIndex; // which letter i have selected at this moment
     byte crChar; // which character of the name im currently writing
     bool updatedIndex;
+    long lastFlash;
+    bool flashState;
 public:
     NameOption() {}
     NameOption(const char* text, int score, Menu* (*nextMenu)(void));

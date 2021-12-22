@@ -509,9 +509,7 @@ void Menu::checkDisplayValues() {
         }
         else {
             NameOption* n_crOption = (NameOption*) crOption;
-            if(n_crOption->changedChar()) {
-                this->updateOptionValue(crOption);
-            }
+            this->updateOptionValue(crOption);
         }
     }
 }
