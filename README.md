@@ -13,7 +13,7 @@ As you ascend higher, you will earn better and better ranks. Personally, I can't
 
 # Classes Architecture
 
-I've separated Menu logic from Game logic using different classes. I also use some utility classes, like _RWHelper_ for the EEPROM at the moment (will probably have more of these in the future). States are managed using the _StateMachine_ class.
+I've separated Menu logic from Game logic using different classes. I also use some utility classes, like _RWHelper_ for the EEPROM at the moment or the _SoundsManager_ class. States are managed using the _StateMachine_ class.
 
 ## Menu Logic
 
@@ -21,13 +21,15 @@ The _Menu_ class contains a pointer to an <strike>vector</strike> array of _Opti
 
 Besides this, the _Menu_ class has a bunch of relevant members for drawing stuff on the LCD. There are also two booleans, one for whether this is a _greeting_ menu or not and one for _in-game_ menus. _Greeting_ menu is a general term I've used for menus that are used just for displaying text for a couple seconds and nothing more. They are special for a couple reasons, but mainly because we don't want to have any sort of cursor blink or the user scrolling through the "options" during such menus. _In-game_ menus are helpful for deciding when to do a state transition, otherwise their properties are similar to _greeting_ menus, with the key difference they don't disappear after a fixed period of time.
 
-I've made a small drawing animation for Menu text. This proved to be quite difficult, especially since I had to take into account the possibility of menus with more than two lines of text. I've also avoided updating the entire lcd for a local text change (i.e. changing an option's value). I'm not going to go to deep into details about this, I've wrote some comments in the code that should clarify how I went about doing these things.
+I've made a small drawing animation for Menu text. This proved to be quite difficult, especially since I had to take into account the possibility of menus with more than two lines of text. I've also avoided updating the entire lcd for a local text change (i.e. changing an option's value). I'm not going to go to deep into details about this, I've wrote some comments in the code that should clarify how I went about doing these things. Also, this limited my LCD drawing possibilities, since using custom characters on the LCD seems to have the effect of dramatically slowing down the animation. I decided to keep the animation.
+
+I've used throughout the code two different terms, "logical position" and "physical position". By logical position, I'm strictly talking about the order of an Option inside the Menu (i.e. first option, second option etc.) or the order of a line in the Menu's text. Physical position refers to the position where the Option's text starts in its corresponding line, and the line _on the LCD screen_ where it should be drawn. Probably not the best choice of terms, but they naturally came to me while I was documenting the code.
 
 The Options were handled using multiple classes, for each type of Option. I've also defined an OptionType enum, to simulate downcasting, since Arduino doesn't allow classic dynamic_cast C++ downcasting. The classes themselves are pretty self-evident at what they do.
 
 ## Game Logic
 
-For the Game logic, I've defined, at the moment of writing this doc, two main classes, the _World_ class and the _Player_ class, and a bunch of _Structures_ sub classes, that serve as building blocks of the world.
+For the Game logic, I've defined two main classes, the _World_ class and the _Player_ class, and a bunch of _Structures_ sub classes, that serve as building blocks of the world.
 
 For representing the game map, I've used a _FakeMatrix_ class. The class simulates a regular C++ matrix, by using a dynamically alocated byte array, and counting each byte's bit as a column value. I've overloaded the indexing and assignment operators in such a way that using this class is almost identical to using a regular matrix. Since it's overhead is only two bytes (not including the stuff C++ automatically creates for object headers), I'd say it's a pretty good convenience trade-off, instead of manually using a byte array.
 
@@ -59,3 +61,9 @@ State transitions are done by checking whether we are in an _in_game_ menu or no
 ## EEPROM
 
 Since I've used both ints and bytes for my relevant data, I've decided to use the _EEPROM.get()_ and _EEPROM.put()_ methods for loading and writing data. The documentation says _put()_ calls _update()_, so that should be alright. Not much more to be said, the method that handles writing a high score also searches for the high score's place in the top, and inserts it into the list (that's why it's much bigger than the other methods).
+
+## Bugs
+### The Lonely Point
+As far as I'm concerned, this is the only bug and I'm not even sure if I haven't accidentally patched it or not (I haven't been able to replicate it for a while). Sometimes, the last structure spawned will be one point or a line with a length of two points, and then the program just stops spawning new platforms. It's not a memory leak, since dying succesfully brings me to the title screen (and I can start a new playthrough afterwards), and it almost certainly isn't caused by one of the _Structure_ classes. Due to the difficulty of even replicating this behaviour, I can't say for certain whether it's completely gone or not.
+
+My theory is that what's really happening is that another line\pointy line structure (the ones that don't have a class associated to them) is being spawned after the Lonely Point. However, the player does some sort of mistake and falls a couple lines back on an older platform. After they climb back, the map was scrolled down a couple lines during the fall and the structure ends up being **deleted**, but since there's no object handling it, there's nothing called to draw it back on the map. At some point I've increased the amount of lines the matrix has and that might've patched it, but again, since I haven't been able to closely examine the bug, I can't say it's for certain.
