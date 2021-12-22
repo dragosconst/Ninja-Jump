@@ -137,7 +137,8 @@ void DisappearingPlatform::draw(World* world) {
                 if(this->state) { // when state is true, draw odd segments
                     if((col / 4) % 2 == 0) {
                         (*world->getMatrix())[Pos(this->top, x)] = 1;
-                        (*world->getMatrix())[Pos(this->top, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(this->top, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -146,7 +147,8 @@ void DisappearingPlatform::draw(World* world) {
                 else {
                     if((col / 4) % 2) {
                         (*world->getMatrix())[Pos(this->top, x)] = 1;
-                        (*world->getMatrix())[Pos(this->top, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(this->top, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -169,7 +171,8 @@ void DisappearingPlatform::draw(World* world) {
                 if(row % 4 == 0) {
                     if(this->state && col == 0) {
                         (*world->getMatrix())[Pos(y, x)] = 1;
-                        (*world->getMatrix())[Pos(y, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(y, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -178,7 +181,8 @@ void DisappearingPlatform::draw(World* world) {
                 else if(row % 2 == 0) {
                     if(!this->state && col == 2) {
                         (*world->getMatrix())[Pos(y, x)] = 1;
-                        (*world->getMatrix())[Pos(y, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(y, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -203,7 +207,8 @@ void DisappearingPlatform::draw(World* world) {
                     if(col == row ||
                     col == 8 - row) {
                         (*world->getMatrix())[Pos(y, x)] = 1;
-                        (*world->getMatrix())[Pos(y, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(y, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -213,7 +218,8 @@ void DisappearingPlatform::draw(World* world) {
                     if(col == row ||
                     col == 8 - row) {
                         (*world->getMatrix())[Pos(y, x)] = 1;
-                        (*world->getMatrix())[Pos(y, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(y, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -237,7 +243,8 @@ void DisappearingPlatform::draw(World* world) {
                 if(this->state && row % 4 == 0) {
                     if(col % 4 == 0 && col == abs(row - 4)) {
                         (*world->getMatrix())[Pos(y, x)] = 1;
-                        (*world->getMatrix())[Pos(y, x + 1)] = 1;
+                        if(x + 1 < World::numCols)
+                            (*world->getMatrix())[Pos(y, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue; 
@@ -246,7 +253,8 @@ void DisappearingPlatform::draw(World* world) {
                 else if(!this->state && row % 4 && row % 2 == 0) {
                     if(col % 2 == 0 && col % 4) {
                         (*world->getMatrix())[Pos(y, x)] = 1;
-                        (*world->getMatrix())[Pos(y, x + 1)] = 1;
+                        if(x + 1 < World::numCols) 
+                            (*world->getMatrix())[Pos(y, x + 1)] = 1;
                         ++x;
                         col += 2;
                         continue;
@@ -291,7 +299,7 @@ BoundingBox DisappearingPlatform::getBoundingBox() {
         return BoundingBox(this->left, this->top, 1, 0, true);
     }
     else if(this->dtype == DP_CSTAIR) {
-        return BoundingBox(this->top, this->ex - 1, 1, 0, true);
+        return BoundingBox(this->ex - 1, this->top, 1, 0, true);
     }
 }
 

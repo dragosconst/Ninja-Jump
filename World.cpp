@@ -201,7 +201,7 @@ void World::checkCamera() {
 
 // recenter the matrix so that pos becomes (12, 12)
 void World::recenter(Pos pos) {
-    Serial.print(pos.i); Serial.print(" "); Serial.println(pos.j);
+    // Serial.print(pos.i); Serial.print(" "); Serial.println(pos.j);
     while(pos.j < PLAYER_X) {
         this->scrollLeft();
         pos.j += 1;
@@ -353,7 +353,7 @@ BoundingBox World::generateStructure(int8_t x_first, int8_t y_first, int8_t x_la
            return this->generateLine(y, x_first, xMax, x);
         }
         else if(dice == GEN_POINTY) {
-            if(x == xMax - 1) {
+            if(x == x_last - 1) {
                 x -= 3;
                 if(y == y_first)
                     y += 1;
@@ -488,7 +488,7 @@ void World::generateFromLast(bool first = false) {
         }
         else {
             BoundingBox rangeLast = this->getBestRange(this->last);
-            Serial.print("last x = "); Serial.print(last.x); Serial.print(" last y = "); Serial.println(last.y);
+            // Serial.print("last x = "); Serial.print(last.x); Serial.print(" last y = "); Serial.println(last.y);
             // Serial.print("range last is: x = "); Serial.print(rangeLast.x); Serial.print(" y = "); Serial.print(rangeLast.y); Serial.print(" height = "); Serial.print(rangeLast.height); Serial.print(" width = "); Serial.println(rangeLast.width);
             BoundingBox rangeSecondLast = this->getBestRange(this->secondLast);
             // Serial.print("range second last is: x = "); Serial.print(rangeSecondLast.x); Serial.print(" y = "); Serial.print(rangeSecondLast.y); Serial.print(" height = "); Serial.print(rangeSecondLast.height); Serial.print(" width = "); Serial.println(rangeSecondLast.width);
