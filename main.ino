@@ -16,6 +16,18 @@
 #define CG_SIZE 2
 #define NAME_SIZE 2
 
+#define MIN_DIFF 1
+#define MAX_DIFF 2
+
+#define MIN_VOL 0
+#define MAX_VOL 5
+
+#define MIN_THEME 1
+#define MAX_THEME 4
+
+#define SOUND_OFF 0
+#define SOUND_ON 1
+
 const byte dinPin = 11;
 const byte clockPin = 12;
 const byte loadPin = A3;
@@ -127,10 +139,10 @@ Menu* createSettingsMenu() {
   SystemOption* _contrastOption = new SystemOption("Contrast", contrastPin, baseContrast, RWHelper::getVal(CONTRAST_ADDR), 10, RWHelper::writeContrast);
   SystemOption* _brightOption = new SystemOption("LCD brg.", brightnessPin, baseLCDBrightness, RWHelper::getVal(LCD_ADDR), 20, RWHelper::writeLCDBright);
   LEDOption* _ledOption = new LEDOption("LED brg.", &lc, RWHelper::getVal(LED_ADDR));
-  GameOption* _diffOption = new GameOption("Diff.", &difficulty, 1, 2, RWHelper::getVal(DIFF_ADDR), gameValue);
-  GameOption* _volOption = new GameOption("Volume", nullptr, 0, 5, RWHelper::getVal(RWHelper::volAddr), volumeOption);
-  GameOption* _themeOption = new GameOption("Game theme", nullptr, 1, 2, RWHelper::getVal(RWHelper::themeAddr), themeOption);
-  GameOption* _soundOption = new GameOption("Sounds", nullptr, 0, 1, RWHelper::getVal(RWHelper::soundAddr), soundOption);
+  GameOption* _diffOption = new GameOption("Diff.", &difficulty, MIN_DIFF, MAX_DIFF, RWHelper::getVal(DIFF_ADDR), gameValue);
+  GameOption* _volOption = new GameOption("Volume", nullptr, MIN_VOL, MAX_VOL, RWHelper::getVal(RWHelper::volAddr), volumeOption);
+  GameOption* _themeOption = new GameOption("Game theme", nullptr, MIN_THEME, MAX_THEME, RWHelper::getVal(RWHelper::themeAddr), themeOption);
+  GameOption* _soundOption = new GameOption("Sounds", nullptr, SOUND_OFF, SOUND_ON, RWHelper::getVal(RWHelper::soundAddr), soundOption);
   MenuOption* _backSetOption = new MenuOption("Back\n", createMainMenu);
   grOptsStArr[0]  = _contrastOption; grOptsStArr[1]  = _brightOption; grOptsStArr[2]  = _ledOption; grOptsStArr[3]  = _diffOption; grOptsStArr[4]  = _volOption; grOptsStArr[5]  = _themeOption; grOptsStArr[6]  = _soundOption; grOptsStArr[7]  = _backSetOption;
   Menu* menu = new Menu(&lcd, false);

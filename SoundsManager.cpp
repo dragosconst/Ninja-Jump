@@ -18,8 +18,14 @@ void SoundsManager::playTheme() {
         if(SoundsManager::ingame_theme == INGAME_FIRST_THEME) {
             SoundsManager::player->loop(INGAME_THEME_1);
         }
-        else {
+        else if(SoundsManager::ingame_theme == INGAME_SECOND_THEME) {
             SoundsManager::player->loop(INGAME_THEME_2);
+        }
+        else if(SoundsManager::ingame_theme == INGAME_THIRD_THEME) {
+            SoundsManager::player->loop(INGAME_THEME_3);
+        }
+        else if(SoundsManager::ingame_theme == INGAME_FOURTH_THEME) {
+            SoundsManager::player->loop(INGAME_THEME_4);
         }
     }
 }

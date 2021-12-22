@@ -4,9 +4,13 @@
 #define INGAME_THEME_1 1
 #define MENU_THEME 2
 #define INGAME_THEME_2 3
+#define INGAME_THEME_3 4
+#define INGAME_THEME_4 5
 
 #define INGAME_FIRST_THEME 1
 #define INGAME_SECOND_THEME 2
+#define INGAME_THIRD_THEME 3
+#define INGAME_FOURTH_THEME 4
 
 #define JUMP_DUR 200
 #define CAN_DUR 100
