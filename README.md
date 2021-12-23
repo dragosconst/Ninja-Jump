@@ -97,8 +97,11 @@ My theory is that what's really happening is that another line\pointy line struc
 
 ## 3.2 Landscaping
 As the name suggests, it's possible to modify the structure's in-game representation, using frame-perfect inputs. By moving on the x-Axis in the air exactly when you pass through a platform, sometimes the point you just moved through gets deleted. I'm not exactly sure why it happens, but due to the high difficulty of doing this and essentially not being possible to delete more than a point at a time, I don't think it's a very relevant problem. Similarly, jumping through a disappearing platform may sometimes leave a tracing point after the platform disappears.
+  
+## 3.3 Ruined temple
+Sometimes, the pointy structures will have parts of their left half disappear, due to map scrolling. Since there's no object keeping track of them, no one draws their parts back. However, due to the way procedural generation works, I'm almost certain it's impossible this could spawn the next structure out of reach. The next structure is spawned only when the last structure spawned is in the panning camera, but if the pointy line is in the panning camera, it means that it's left half was already deleted. So the algorithm will check for every point _drawn on the map_ of the structure, therefore it won't take into account the missing bits. Meaning that this _doesn't negatively impact_ the gameplay in any way. Personally, I don't even consider it a bug, it gives a nice impression of a ruined temple with roofs falling off etc., but I included it here out of pedantry.
 
-## 3.3 Circuit problems
+## 3.4 Circuit problems
 Very rarely, the LCD decides to crash and print random stuff. I've added a capacitor to its circuit and connected it through a separate GND pin to the rest of the circuit. This seems to have greatly diminshed the problem or even solved it (I haven't had it happen out of nowhere since I've done this).
 
 The MP3 player behaves really bizarrely, sometimes it'll refuse to communicate with the Arduino board and it will just keep looping whatever it was already playing, even if the song should change. Even more interestingly, it'll keep doing this after reseting the Arduino board and the only way to stop it seems to be cutting off the power supply and reconnecting it. Also, it's **very** sensitive to noise, so accidentally moving its wires might sometimes shut it down immediately.
