@@ -109,6 +109,7 @@ The MP3 player behaves really bizarrely, sometimes it'll refuse to communicate w
   
 # 4. Components used
 <details> <summary></summary>
+  
 I've used one LCD screen, one LED matrix and one matrix driver, one MP3 player, two buzzers, one pushbutton, one joystick, 5 resistors, three capacitors and a **lot** of wires.
 
 Pictures:
