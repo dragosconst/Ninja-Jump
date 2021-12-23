@@ -18,7 +18,7 @@ As you ascend higher, you will earn better and better ranks. Personally, I can't
 # 2. Classes Architecture
 <details> <summary></summary>
 
-I've separated Menu logic from Game logic using different classes. I also use some utility classes, like _RWHelper_ for the EEPROM at the moment or the _SoundsManager_ class. States are managed using the _StateMachine_ class.
+I've separated Menu logic from Game logic using different classes. I also use some utility classes, like _RWHelper_ for the EEPROM or the _SoundsManager_ class. States are managed using the _StateMachine_ class.
 
 ## 2.1 Menu Logic
 
