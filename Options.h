@@ -21,13 +21,10 @@
 // 1. a menu transition - selecting it will transition to a new menu
 // 2. a system value changer - it will change a system value, like contrast
 // 3. led matrix brightness - basically a singleton, controls the led brightness
-// 4. a game value changer - it will change a value related to the game's logic, like difficulty
+// 4. a game value changer - it will change a value related to the game's logic, like difficulty, volume etc.
 // 5. naming option for high scores - names will have only 3 characters for EEPROM's sake -> could modify in the future
 // 6. a value display - this is used for displaying stuff in game, you can't actually do anything with these options but look at them
 // 7. greeting - might be necessary for game over and welcome screens
-// 8. volume option for the music
-// 9. change in-game music theme
-// 10. turn off sounds
 enum OptionType { menuTransition, sysValue, gameValue, ledValue, nameOption, valueDisplay, greeting, volumeOption, themeOption, soundOption};
 
 class Menu;

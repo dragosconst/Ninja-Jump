@@ -297,6 +297,8 @@ void setup() {
   pinMode(brightnessPin, OUTPUT);  
   analogWrite(contrastPin, RWHelper::getVal(CONTRAST_ADDR));
   analogWrite(brightnessPin, RWHelper::getVal(LCD_ADDR));
+
+  // RWHelper::writeByte(HSNUM_ADDR, 5);
   
   lcd.begin(16, 2);
   // lcd.print("heelloo");

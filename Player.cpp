@@ -23,7 +23,7 @@ void Player::move(int xVal, int yVal) {
             this->world->scrollRight();
         }
         else {
-            Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());
+            // Serial.println(!this->world->worldMap[Pos(this->y, this->x + 1)].check());   
         }
     }
     else if(xVal == -1) {
