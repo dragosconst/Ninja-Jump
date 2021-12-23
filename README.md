@@ -12,7 +12,7 @@ The controls are simple enough. Use the joystick to move on the X-axis and press
   
 Also, a very important aspect is that, while jumping, you can pass through _any_ structure, with the exception of canon bullets, which kill you on impact. Take this into consideration when a jump seems impossible.
 
-As you ascend higher, you will earn better and better ranks. Personally, I can't go higher than the Monk rank.
+As you ascend higher, you will earn better and better ranks. Personally, I can't go higher than the <strike>Monk</strike> Shogun rank.
 </details>
   
 # 2. Classes Architecture
